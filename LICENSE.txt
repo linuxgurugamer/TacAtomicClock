@@ -1,0 +1,4 @@
+The TAC Atomic Clock mod is made available under the Attribution-ShareAlike 3.0 (CC BY-SA 3.0)
+license. See http://creativecommons.org/licenses/by-sa/3.0/ for more information.
+
+Kerbal Space Program is a copyright of Squad. See http://kerbalspaceprogram.com/
