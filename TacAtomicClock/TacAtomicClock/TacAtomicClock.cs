@@ -13,55 +13,63 @@ using UnityEngine;
 
 public class TacAtomicClock : PartModule
 {
+    private static string filename = "PluginData\\tacatomicclock\\TacAtomicClock.cfg";
     private MainWindow mainWindow;
     private ConfigWindow configWindow;
     private HelpWindow helpWindow;
 
-    private bool showingUniversalTime = true;
-    private bool showingEarthTime = true;
-    private bool showingKerbinTime = true;
-    private bool showingRealTime = true;
+    private bool showingUniversalTime;
+    private bool showingEarthTime;
+    private bool showingKerbinTime;
+    private bool showingRealTime;
 
-    double initialOffsetInEarthSeconds;
-    double kerbinSecondsPerEarthSecond;
+    private double initialOffsetInEarthSeconds;
+    private double kerbinSecondsPerEarthSecond;
+    private double kerbinSecondsPerMinute;
+    private double kerbinMinutesPerHour;
+    private double kerbinHoursPerDay;
+    private double kerbinDaysPerMonth;
+    private double kerbinMonthsPerYear;
 
-    double kerbinSecondsPerMinute;
-    double kerbinSecondsPerHour;
-    double kerbinSecondsPerDay;
-    double kerbinSecondsPerMonth;
-    double kerbinSecondsPerYear;
+    private bool debug;
 
-    private bool debug = true;
+    private GUIStyle buttonStyle;
+    private RectOffset buttonPadding;
+    private RectOffset buttonMargin;
 
-    private GUIStyle buttonStyle = null;
-
-    public override void OnStart(PartModule.StartState state)
+    public override void OnAwake()
     {
-        base.OnStart(state);
-
-        Debug.Log("TAC Atomic Clock [" + Time.time + "]: OnStart " + state);
-
+        Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: OnAwake");
         mainWindow = new MainWindow(this);
         configWindow = new ConfigWindow(this);
         helpWindow = new HelpWindow(this);
 
-        // from the wiki, TODO are they accurate?
-        const double earthHoursPerKerbinDay = 6 + 50.0 / 3600.0; // 6 hours and 50 seconds, or 21650 seconds
-        const double earthHoursPerKerbinMonth = 38.6;
-        const double earthHoursPerKerbinYear = 2556.5;
+        showingUniversalTime = true;
+        showingEarthTime = true;
+        showingKerbinTime = true;
+        showingRealTime = true;
 
-        // Given that Kerbals have 4 fingers (including thumbs) and 2 joints per finger,
-        // they can count to 6 on the three fingers on one hand, and multiply by the four fingers on the other hand for 24
-        kerbinSecondsPerMinute = 24.0;
-        kerbinSecondsPerHour = kerbinSecondsPerMinute * 24.0; // 576 seconds
-        kerbinSecondsPerDay = kerbinSecondsPerHour * 12.0; // 6912 seconds
-
-        double earthHoursPerKerbinHour = earthHoursPerKerbinDay / 12.0;
-        kerbinSecondsPerMonth = kerbinSecondsPerHour * earthHoursPerKerbinMonth / earthHoursPerKerbinHour;
-        kerbinSecondsPerYear = kerbinSecondsPerHour * earthHoursPerKerbinYear / earthHoursPerKerbinHour;
-
-        kerbinSecondsPerEarthSecond = kerbinSecondsPerDay / (earthHoursPerKerbinDay * 3600.0);
         initialOffsetInEarthSeconds = 0.0;
+        kerbinSecondsPerMinute = 36.0;
+        kerbinMinutesPerHour = 36.0;
+        kerbinHoursPerDay = 12.0;
+        kerbinDaysPerMonth = 6.418476;
+        kerbinMonthsPerYear = 66.23057;
+
+        buttonPadding = new RectOffset(5, 5, 3, 0);
+        buttonMargin = new RectOffset(1, 1, 1, 1);
+
+        // TODO Got this from the wiki, is it correct?
+        const double earthHoursPerKerbinDay = 6 + 50.0 / 3600.0; // 6 hours and 50 seconds, or 21650 seconds
+        kerbinSecondsPerEarthSecond = (kerbinHoursPerDay * kerbinMinutesPerHour * kerbinSecondsPerMinute) / (earthHoursPerKerbinDay * 3600.0);
+
+        debug = false;
+    }
+
+    public override void OnStart(PartModule.StartState state)
+    {
+        Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: OnStart " + state);
+        base.OnStart(state);
 
         if (state != StartState.Editor)
         {
@@ -72,6 +80,133 @@ public class TacAtomicClock : PartModule
         }
     }
 
+    public override void OnLoad(ConfigNode node)
+    {
+        base.OnLoad(node);
+
+        ConfigNode config = ConfigNode.Load(filename);
+        Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: loaded from file: " + node);
+
+        getValue(config, "debug", ref debug);
+
+        getValue(config, "showingUniversalTime", ref showingUniversalTime);
+        getValue(config, "showingEarthTime", ref showingEarthTime);
+        getValue(config, "showingKerbinTime", ref showingKerbinTime);
+        getValue(config, "showingRealTime", ref showingRealTime);
+
+        getValue(config, "initialOffsetInEarthSeconds", ref initialOffsetInEarthSeconds);
+        getValue(config, "kerbinSecondsPerEarthSecond", ref kerbinSecondsPerEarthSecond);
+        getValue(config, "kerbinSecondsPerMinute", ref kerbinSecondsPerMinute);
+        getValue(config, "kerbinMinutesPerHour", ref kerbinMinutesPerHour);
+        getValue(config, "kerbinHoursPerDay", ref kerbinHoursPerDay);
+        getValue(config, "kerbinDaysPerMonth", ref kerbinDaysPerMonth);
+        getValue(config, "kerbinMonthsPerYear", ref kerbinMonthsPerYear);
+
+        mainWindow.Load(config, "mainWindow");
+        configWindow.Load(config, "configWindow");
+        helpWindow.Load(config, "helpWindow");
+
+        int newValue;
+        if (config.HasValue("buttonStyle.padding.left") && int.TryParse(config.GetValue("buttonStyle.padding.left"), out newValue))
+        {
+            buttonPadding.left = newValue;
+        }
+        if (config.HasValue("buttonStyle.padding.right") && int.TryParse(config.GetValue("buttonStyle.padding.right"), out newValue))
+        {
+            buttonPadding.right = newValue;
+        }
+        if (config.HasValue("buttonStyle.padding.top") && int.TryParse(config.GetValue("buttonStyle.padding.top"), out newValue))
+        {
+            buttonPadding.top = newValue;
+        }
+        if (config.HasValue("buttonStyle.padding.bottom") && int.TryParse(config.GetValue("buttonStyle.padding.bottom"), out newValue))
+        {
+            buttonPadding.bottom = newValue;
+        }
+
+        if (config.HasValue("buttonStyle.margin.left") && int.TryParse(config.GetValue("buttonStyle.margin.left"), out newValue))
+        {
+            buttonMargin.left = newValue;
+        }
+        if (config.HasValue("buttonStyle.margin.right") && int.TryParse(config.GetValue("buttonStyle.margin.right"), out newValue))
+        {
+            buttonMargin.right = newValue;
+        }
+        if (config.HasValue("buttonStyle.margin.top") && int.TryParse(config.GetValue("buttonStyle.margin.top"), out newValue))
+        {
+            buttonMargin.top = newValue;
+        }
+        if (config.HasValue("buttonStyle.margin.bottom") && int.TryParse(config.GetValue("buttonStyle.margin.bottom"), out newValue))
+        {
+            buttonMargin.bottom = newValue;
+        }
+    }
+
+    public override void OnSave(ConfigNode node)
+    {
+        base.OnSave(node);
+
+        ConfigNode config = new ConfigNode();
+        config.AddValue("debug", debug);
+
+        config.AddValue("showingUniversalTime", showingUniversalTime);
+        config.AddValue("showingEarthTime", showingEarthTime);
+        config.AddValue("showingKerbinTime", showingKerbinTime);
+        config.AddValue("showingRealTime", showingRealTime);
+
+        config.AddValue("initialOffsetInEarthSeconds", initialOffsetInEarthSeconds);
+        config.AddValue("kerbinSecondsPerEarthSecond", kerbinSecondsPerEarthSecond);
+        config.AddValue("kerbinSecondsPerMinute", kerbinSecondsPerMinute);
+        config.AddValue("kerbinMinutesPerHour", kerbinMinutesPerHour);
+        config.AddValue("kerbinHoursPerDay", kerbinHoursPerDay);
+        config.AddValue("kerbinDaysPerMonth", kerbinDaysPerMonth);
+        config.AddValue("kerbinMonthsPerYear", kerbinMonthsPerYear);
+
+        mainWindow.Save(config, "mainWindow");
+        configWindow.Save(config, "configWindow");
+        helpWindow.Save(config, "helpWindow");
+
+        config.AddValue("buttonStyle.padding.left", buttonStyle.padding.left);
+        config.AddValue("buttonStyle.padding.right", buttonStyle.padding.right);
+        config.AddValue("buttonStyle.padding.top", buttonStyle.padding.top);
+        config.AddValue("buttonStyle.padding.bottom", buttonStyle.padding.bottom);
+
+        config.AddValue("buttonStyle.margin.left", buttonStyle.margin.left);
+        config.AddValue("buttonStyle.margin.right", buttonStyle.margin.right);
+        config.AddValue("buttonStyle.margin.top", buttonStyle.margin.top);
+        config.AddValue("buttonStyle.margin.bottom", buttonStyle.margin.bottom);
+
+        config.Save(filename);
+        Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: saved to file: " + node);
+    }
+
+    private static void getValue(ConfigNode config, string name, ref bool value)
+    {
+        bool newValue;
+        if (config.HasValue(name) && bool.TryParse(config.GetValue(name), out newValue))
+        {
+            value = newValue;
+        }
+    }
+
+    private static void getValue(ConfigNode config, string name, ref int value)
+    {
+        int newValue;
+        if (config.HasValue(name) && int.TryParse(config.GetValue(name), out newValue))
+        {
+            value = newValue;
+        }
+    }
+
+    private static void getValue(ConfigNode config, string name, ref double value)
+    {
+        double newValue;
+        if (config.HasValue(name) && double.TryParse(config.GetValue(name), out newValue))
+        {
+            value = newValue;
+        }
+    }
+
     public void CleanUp()
     {
         mainWindow.SetVisible(false);
@@ -79,17 +214,24 @@ public class TacAtomicClock : PartModule
         helpWindow.SetVisible(false);
     }
 
-    [KSPEvent(guiActive = true, guiName = "Show/Hide TAC Atomic Clock")]
-    public void ToggleClockEvent()
+    [KSPEvent(guiActive = true, guiName = "Show TAC Atomic Clock", active = false)]
+    public void ShowClockEvent()
     {
-        Debug.Log("TAC Atomic Clock [" + Time.time + "]: toggled by right click");
-        mainWindow.SetVisible(!mainWindow.IsVisible());
+        Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: shown by right click");
+        mainWindow.SetVisible(true);
+    }
+
+    [KSPEvent(guiActive = true, guiName = "Hide TAC Atomic Clock")]
+    public void HideClockEvent()
+    {
+        Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: hidden by right click");
+        mainWindow.SetVisible(false);
     }
 
     [KSPAction("Toggle TAC Atomic Clock")]
     public void ToggleClockAction(KSPActionParam param)
     {
-        Debug.Log("TAC Atomic Clock [" + Time.time + "]: toggled by action");
+        Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: toggled by action");
         mainWindow.SetVisible(!mainWindow.IsVisible());
     }
 
@@ -117,7 +259,8 @@ public class TacAtomicClock : PartModule
                 if (!visible)
                 {
                     RenderingManager.AddToPostDrawQueue(3, new Callback(CreateWindow));
-                    parent.Events["ToggleClockEvent"].guiName = "Hide TAC Atomic Clock";
+                    parent.Events["ShowClockEvent"].active = false;
+                    parent.Events["HideClockEvent"].active = true;
                 }
             }
             else
@@ -125,7 +268,8 @@ public class TacAtomicClock : PartModule
                 if (visible)
                 {
                     RenderingManager.RemoveFromPostDrawQueue(3, new Callback(CreateWindow));
-                    parent.Events["ToggleClockEvent"].guiName = "Show TAC Atomic Clock";
+                    parent.Events["ShowClockEvent"].active = true;
+                    parent.Events["HideClockEvent"].active = false;
                     parent.configWindow.SetVisible(false);
                     parent.helpWindow.SetVisible(false);
                 }
@@ -140,6 +284,45 @@ public class TacAtomicClock : PartModule
             windowPos.height = height;
         }
 
+        public void Load(ConfigNode config, string subnode)
+        {
+            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Load " + subnode);
+            if (config.HasNode(subnode))
+            {
+                ConfigNode windowConfig = config.GetNode(subnode);
+
+                float newValue;
+                if (windowConfig.HasValue("xPos") && float.TryParse(windowConfig.GetValue("xPos"), out newValue))
+                {
+                    windowPos.xMin = newValue;
+                }
+
+                if (windowConfig.HasValue("yPos") && float.TryParse(windowConfig.GetValue("yPos"), out newValue))
+                {
+                    windowPos.yMin = newValue;
+                }
+            }
+        }
+
+        public void Save(ConfigNode config, string subnode)
+        {
+            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Save " + subnode);
+
+            ConfigNode windowConfig;
+            if (config.HasNode(subnode))
+            {
+                windowConfig = config.GetNode(subnode);
+            }
+            else
+            {
+                windowConfig = new ConfigNode(subnode);
+                config.AddNode(windowConfig);
+            }
+
+            windowConfig.AddValue("xPos", windowPos.xMin);
+            windowConfig.AddValue("yPos", windowPos.yMin);
+        }
+
         private void CreateWindow()
         {
             try
@@ -151,6 +334,8 @@ public class TacAtomicClock : PartModule
                     if (parent.buttonStyle == null)
                     {
                         parent.buttonStyle = new GUIStyle(GUI.skin.button);
+                        parent.buttonStyle.padding = parent.buttonPadding;
+                        parent.buttonStyle.margin = parent.buttonMargin;
                     }
 
                     windowPos = GUILayout.Window(windowTitle.GetHashCode(), windowPos, Draw, windowTitle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
@@ -204,6 +389,7 @@ public class TacAtomicClock : PartModule
                 if (parent.debug)
                 {
                     GUILayout.Label("KT: " + GetKerbinTimeSideReel(ut), labelStyle, GUILayout.ExpandWidth(true));
+                    GUILayout.Label("KT: " + GetKerbinTime2(ut), labelStyle, GUILayout.ExpandWidth(true));
                 }
             }
             if (parent.showingRealTime)
@@ -222,7 +408,7 @@ public class TacAtomicClock : PartModule
             const double SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60.0; // 3,600
             const double SECONDS_PER_DAY = SECONDS_PER_HOUR * 24.0; // 86,400
             const double SECONDS_PER_YEAR = SECONDS_PER_DAY * 365.0; // 31,536,000
-            const double SECONDS_PER_MONTH = SECONDS_PER_YEAR / 12.0; // 2,628,000 seconds, 30.4 days
+            const double SECONDS_PER_MONTH = SECONDS_PER_DAY * 30;// SECONDS_PER_YEAR / 12.0; // 2,628,000 seconds, 30.4 days
 
             double temp = ut;
 
@@ -243,8 +429,9 @@ public class TacAtomicClock : PartModule
 
             int seconds = (int)(temp);
 
-            // The game starts on Year 1, Month 1
+            // The game starts on Year 1, Day 1
             years += 1;
+            months += 1;
             days += 1;
 
             // TODO adjust for leap years?
@@ -284,6 +471,11 @@ public class TacAtomicClock : PartModule
 
             int seconds = (int)(temp);
 
+            // The game starts on Year 1, Day 1
+            years += 1;
+            months += 1;
+            days += 1;
+
             return years.ToString("00") + ":"
                 + months.ToString("00") + ":"
                 + days.ToString("00") + " "
@@ -294,24 +486,60 @@ public class TacAtomicClock : PartModule
 
         private String GetKerbinTime(double ut)
         {
-            double temp = (ut + parent.initialOffsetInEarthSeconds) * parent.kerbinSecondsPerEarthSecond;
+            // ****************************************************************************
+            double initialOffsetInEarthSeconds;
+            double kerbinSecondsPerEarthSecond;
+            double kerbinSecondsPerMinute;
+            double kerbinSecondsPerHour;
+            double kerbinSecondsPerDay;
+            double kerbinSecondsPerMonth;
+            double kerbinSecondsPerYear;
 
-            int years = (int)(temp / parent.kerbinSecondsPerYear);
-            temp -= years * parent.kerbinSecondsPerYear;
+            // ****************************************************************************
 
-            int months = (int)(temp / parent.kerbinSecondsPerMonth);
-            temp -= months * parent.kerbinSecondsPerMonth;
+            // from the wiki, TODO are they accurate?
+            const double earthHoursPerKerbinDay = 6 + 50.0 / 3600.0; // 6 hours and 50 seconds, or 21650 seconds
+            const double earthHoursPerKerbinMonth = 38.6;
+            const double earthHoursPerKerbinYear = 2556.5;
 
-            int days = (int)(temp / parent.kerbinSecondsPerDay);
-            temp -= days * parent.kerbinSecondsPerDay;
+            // Given that Kerbals have 4 fingers (including thumbs) and 2 joints per finger,
+            // they can count to 6 on the three fingers on one hand, and multiply by the four fingers on the other hand for 24
+            kerbinSecondsPerMinute = 24.0;
+            kerbinSecondsPerHour = kerbinSecondsPerMinute * 24.0; // 576 seconds
+            kerbinSecondsPerDay = kerbinSecondsPerHour * 12.0; // 6912 seconds
 
-            int hours = (int)(temp / parent.kerbinSecondsPerHour);
-            temp -= hours * parent.kerbinSecondsPerHour;
+            double earthHoursPerKerbinHour = earthHoursPerKerbinDay / 12.0;
+            kerbinSecondsPerMonth = kerbinSecondsPerHour * earthHoursPerKerbinMonth / earthHoursPerKerbinHour;
+            kerbinSecondsPerYear = kerbinSecondsPerHour * earthHoursPerKerbinYear / earthHoursPerKerbinHour;
 
-            int minutes = (int)(temp / parent.kerbinSecondsPerMinute);
-            temp -= minutes * parent.kerbinSecondsPerMinute;
+            kerbinSecondsPerEarthSecond = kerbinSecondsPerDay / (earthHoursPerKerbinDay * 3600.0);
+            initialOffsetInEarthSeconds = 0.0;
+
+            // ****************************************************************************
+
+            double temp = (ut + initialOffsetInEarthSeconds) * kerbinSecondsPerEarthSecond;
+
+            int years = (int)(temp / kerbinSecondsPerYear);
+            temp -= years * kerbinSecondsPerYear;
+
+            int months = (int)(temp / kerbinSecondsPerMonth);
+            temp -= months * kerbinSecondsPerMonth;
+
+            int days = (int)(temp / kerbinSecondsPerDay);
+            temp -= days * kerbinSecondsPerDay;
+
+            int hours = (int)(temp / kerbinSecondsPerHour);
+            temp -= hours * kerbinSecondsPerHour;
+
+            int minutes = (int)(temp / kerbinSecondsPerMinute);
+            temp -= minutes * kerbinSecondsPerMinute;
 
             int seconds = (int)(temp);
+
+            // The game starts on Year 1, Day 1
+            years += 1;
+            months += 1;
+            days += 1;
 
             return years.ToString("00") + ":"
                 + months.ToString("00") + ":"
@@ -320,11 +548,44 @@ public class TacAtomicClock : PartModule
                 + minutes.ToString("00") + ":"
                 + seconds.ToString("00") + " (solar days)";
         }
+
+        private String GetKerbinTime2(double ut)
+        {
+            int seconds = (int)((ut + parent.initialOffsetInEarthSeconds) * parent.kerbinSecondsPerEarthSecond);
+
+            int minutes = (int)(seconds / parent.kerbinSecondsPerMinute);
+            seconds -= (int)(minutes * parent.kerbinSecondsPerMinute);
+
+            int hours = (int)(minutes / parent.kerbinMinutesPerHour);
+            minutes -= (int)(hours * parent.kerbinMinutesPerHour);
+
+            int days = (int)(hours / parent.kerbinHoursPerDay);
+            hours -= (int)(days * parent.kerbinHoursPerDay);
+
+            int months = (int)(days / parent.kerbinDaysPerMonth);
+            days -= (int)(months * parent.kerbinDaysPerMonth);
+
+            int years = (int)(months / parent.kerbinMonthsPerYear);
+            months -= (int)(years * parent.kerbinMonthsPerYear);
+
+            // The game starts on Year 1, Day 1
+            years += 1;
+            months += 1;
+            days += 1;
+
+            return years.ToString("00") + ":"
+                + months.ToString("00") + ":"
+                + days.ToString("00") + " "
+                + hours.ToString("00") + ":"
+                + minutes.ToString("00") + ":"
+                + seconds.ToString("00") + " (solar days v2)";
+        }
     }
 
     private class ConfigWindow
     {
         private bool visible = false;
+        private bool showAdvanced = false;
         private Rect windowPos = new Rect(60, 60, 60, 60);
         private String windowTitle = "TAC Clock Config";
         private TacAtomicClock parent;
@@ -363,6 +624,45 @@ public class TacAtomicClock : PartModule
         {
             windowPos.width = width;
             windowPos.height = height;
+        }
+
+        public void Load(ConfigNode config, string subnode)
+        {
+            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Load " + subnode);
+            if (config.HasNode(subnode))
+            {
+                ConfigNode windowConfig = config.GetNode(subnode);
+
+                float newValue;
+                if (windowConfig.HasValue("xPos") && float.TryParse(windowConfig.GetValue("xPos"), out newValue))
+                {
+                    windowPos.xMin = newValue;
+                }
+
+                if (windowConfig.HasValue("yPos") && float.TryParse(windowConfig.GetValue("yPos"), out newValue))
+                {
+                    windowPos.yMin = newValue;
+                }
+            }
+        }
+
+        public void Save(ConfigNode config, string subnode)
+        {
+            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Save " + subnode);
+
+            ConfigNode windowConfig;
+            if (config.HasNode(subnode))
+            {
+                windowConfig = config.GetNode(subnode);
+            }
+            else
+            {
+                windowConfig = new ConfigNode(subnode);
+                config.AddNode(windowConfig);
+            }
+
+            windowConfig.AddValue("xPos", windowPos.xMin);
+            windowConfig.AddValue("yPos", windowPos.yMin);
         }
 
         private void CreateWindow()
@@ -423,6 +723,87 @@ public class TacAtomicClock : PartModule
             GUILayout.FlexibleSpace();
             parent.showingRealTime = GUILayout.Toggle(parent.showingRealTime, "");
             GUILayout.EndHorizontal();
+
+            GUILayout.Space(20.0f);
+
+            if (!showAdvanced)
+            {
+                if (GUILayout.Button("Advanced", parent.buttonStyle, GUILayout.ExpandWidth(true)))
+                {
+                    showAdvanced = true;
+                }
+            }
+            else
+            {
+                if (GUILayout.Button("Simple", parent.buttonStyle, GUILayout.ExpandWidth(true)))
+                {
+                    showAdvanced = false;
+                }
+
+                double temp2;
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Initial offset in Earth seconds", labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.FlexibleSpace();
+                if (double.TryParse(GUILayout.TextField(parent.initialOffsetInEarthSeconds.ToString(), 10), out temp2))
+                {
+                    parent.initialOffsetInEarthSeconds = temp2;
+                }
+
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Kerbin seconds per Earth second", labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.FlexibleSpace();
+                if (double.TryParse(GUILayout.TextField(parent.kerbinSecondsPerEarthSecond.ToString(), 10), out temp2))
+                {
+                    parent.kerbinSecondsPerEarthSecond = temp2;
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Kerbin seconds per minute", labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.FlexibleSpace();
+                if (double.TryParse(GUILayout.TextField(parent.kerbinSecondsPerMinute.ToString(), 10), out temp2))
+                {
+                    parent.kerbinSecondsPerMinute = temp2;
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Kerbin minutes per hour", labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.FlexibleSpace();
+                if (double.TryParse(GUILayout.TextField(parent.kerbinMinutesPerHour.ToString(), 10), out temp2))
+                {
+                    parent.kerbinMinutesPerHour = temp2;
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Kerbin hours per day", labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.FlexibleSpace();
+                if (double.TryParse(GUILayout.TextField(parent.kerbinHoursPerDay.ToString(), 10), out temp2))
+                {
+                    parent.kerbinHoursPerDay = temp2;
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Kerbin days per month", labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.FlexibleSpace();
+                if (double.TryParse(GUILayout.TextField(parent.kerbinDaysPerMonth.ToString(), 10), out temp2))
+                {
+                    parent.kerbinDaysPerMonth = temp2;
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Kerbin months per year", labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.FlexibleSpace();
+                if (double.TryParse(GUILayout.TextField(parent.kerbinMonthsPerYear.ToString(), 10), out temp2))
+                {
+                    parent.kerbinMonthsPerYear = temp2;
+                }
+                GUILayout.EndHorizontal();
+            }
 
             if (parent.debug)
             {
@@ -500,70 +881,6 @@ public class TacAtomicClock : PartModule
                     parent.buttonStyle.padding.bottom = temp;
                 }
                 GUILayout.EndHorizontal();
-
-                double temp2;
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Initial offset in Earth seconds", labelStyle, GUILayout.ExpandWidth(true));
-                GUILayout.FlexibleSpace();
-                if (double.TryParse(GUILayout.TextField(parent.initialOffsetInEarthSeconds.ToString(), 10), out temp2))
-                {
-                    parent.initialOffsetInEarthSeconds = temp2;
-                }
-
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kerbin seconds per Earth second", labelStyle, GUILayout.ExpandWidth(true));
-                GUILayout.FlexibleSpace();
-                if (double.TryParse(GUILayout.TextField(parent.kerbinSecondsPerEarthSecond.ToString(), 10), out temp2))
-                {
-                    parent.kerbinSecondsPerEarthSecond = temp2;
-                }
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kerbin seconds per minute", labelStyle, GUILayout.ExpandWidth(true));
-                GUILayout.FlexibleSpace();
-                if (double.TryParse(GUILayout.TextField(parent.kerbinSecondsPerMinute.ToString(), 10), out temp2))
-                {
-                    parent.kerbinSecondsPerMinute = temp2;
-                }
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kerbin minutes per hour", labelStyle, GUILayout.ExpandWidth(true));
-                GUILayout.FlexibleSpace();
-                if (double.TryParse(GUILayout.TextField((parent.kerbinSecondsPerHour / parent.kerbinSecondsPerMinute).ToString(), 10), out temp2))
-                {
-                    parent.kerbinSecondsPerHour = parent.kerbinSecondsPerMinute * temp2;
-                }
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kerbin hours per day", labelStyle, GUILayout.ExpandWidth(true));
-                GUILayout.FlexibleSpace();
-                if (double.TryParse(GUILayout.TextField((parent.kerbinSecondsPerDay / parent.kerbinSecondsPerHour).ToString(), 10), out temp2))
-                {
-                    parent.kerbinSecondsPerDay = parent.kerbinSecondsPerHour * temp2;
-                }
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kerbin days per month", labelStyle, GUILayout.ExpandWidth(true));
-                GUILayout.FlexibleSpace();
-                if (double.TryParse(GUILayout.TextField((parent.kerbinSecondsPerMonth / parent.kerbinSecondsPerDay).ToString(), 10), out temp2))
-                {
-                    parent.kerbinSecondsPerMonth = parent.kerbinSecondsPerDay * temp2;
-                }
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kerbin days per year", labelStyle, GUILayout.ExpandWidth(true));
-                GUILayout.FlexibleSpace();
-                if (double.TryParse(GUILayout.TextField((parent.kerbinSecondsPerYear / parent.kerbinSecondsPerDay).ToString(), 10), out temp2))
-                {
-                    parent.kerbinSecondsPerYear = parent.kerbinSecondsPerDay * temp2;
-                }
-                GUILayout.EndHorizontal();
             }
 
             parent.debug = GUILayout.Toggle(parent.debug, "Debug");
@@ -616,6 +933,45 @@ public class TacAtomicClock : PartModule
             }
 
             this.visible = newValue;
+        }
+
+        public void Load(ConfigNode config, string subnode)
+        {
+            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Load " + subnode);
+            if (config.HasNode(subnode))
+            {
+                ConfigNode windowConfig = config.GetNode(subnode);
+
+                float newValue;
+                if (windowConfig.HasValue("xPos") && float.TryParse(windowConfig.GetValue("xPos"), out newValue))
+                {
+                    windowPos.xMin = newValue;
+                }
+
+                if (windowConfig.HasValue("yPos") && float.TryParse(windowConfig.GetValue("yPos"), out newValue))
+                {
+                    windowPos.yMin = newValue;
+                }
+            }
+        }
+
+        public void Save(ConfigNode config, string subnode)
+        {
+            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Save " + subnode);
+
+            ConfigNode windowConfig;
+            if (config.HasNode(subnode))
+            {
+                windowConfig = config.GetNode(subnode);
+            }
+            else
+            {
+                windowConfig = new ConfigNode(subnode);
+                config.AddNode(windowConfig);
+            }
+
+            windowConfig.AddValue("xPos", windowPos.xMin);
+            windowConfig.AddValue("yPos", windowPos.yMin);
         }
 
         private void CreateWindow()
