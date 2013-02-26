@@ -13,7 +13,7 @@ using UnityEngine;
 
 public class TacAtomicClock : PartModule
 {
-    private static string filename = "PluginData\\tacatomicclock\\TacAtomicClock.cfg";
+    private string filename;
     private MainWindow mainWindow;
     private ConfigWindow configWindow;
     private HelpWindow helpWindow;
@@ -24,7 +24,7 @@ public class TacAtomicClock : PartModule
     private bool showingRealTime;
 
     private double initialOffsetInEarthSeconds;
-    private double kerbinSecondsPerEarthSecond;
+    private double earthSecondsPerKerbinDay;
     private double kerbinSecondsPerMinute;
     private double kerbinMinutesPerHour;
     private double kerbinHoursPerDay;
@@ -50,6 +50,10 @@ public class TacAtomicClock : PartModule
         showingRealTime = true;
 
         initialOffsetInEarthSeconds = 0.0;
+
+        // TODO Got this from the wiki, is it correct?
+        earthSecondsPerKerbinDay = 6 * 3600.0 + 50.0;
+
         kerbinSecondsPerMinute = 36.0;
         kerbinMinutesPerHour = 36.0;
         kerbinHoursPerDay = 12.0;
@@ -59,11 +63,10 @@ public class TacAtomicClock : PartModule
         buttonPadding = new RectOffset(5, 5, 3, 0);
         buttonMargin = new RectOffset(1, 1, 1, 1);
 
-        // TODO Got this from the wiki, is it correct?
-        const double earthHoursPerKerbinDay = 6 + 50.0 / 3600.0; // 6 hours and 50 seconds, or 21650 seconds
-        kerbinSecondsPerEarthSecond = (kerbinHoursPerDay * kerbinMinutesPerHour * kerbinSecondsPerMinute) / (earthHoursPerKerbinDay * 3600.0);
-
         debug = false;
+
+        filename = IOUtils.GetFilePathFor(this.GetType(), "TacAtomicClock.cfg");
+        Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: filename = " + filename);
     }
 
     public override void OnStart(PartModule.StartState state)
@@ -84,100 +87,122 @@ public class TacAtomicClock : PartModule
     {
         base.OnLoad(node);
 
-        ConfigNode config = ConfigNode.Load(filename);
-        Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: loaded from file: " + node);
+        try
+        {
+            ConfigNode config;
+            if (File.Exists<TacAtomicClock>(filename))
+            {
+                config = ConfigNode.Load(filename);
+                Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: loaded from file: " + node);
+            }
+            else
+            {
+                Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: failed to load file: file does not exist");
+                return;
+            }
 
-        getValue(config, "debug", ref debug);
+            getValue(config, "debug", ref debug);
 
-        getValue(config, "showingUniversalTime", ref showingUniversalTime);
-        getValue(config, "showingEarthTime", ref showingEarthTime);
-        getValue(config, "showingKerbinTime", ref showingKerbinTime);
-        getValue(config, "showingRealTime", ref showingRealTime);
+            getValue(config, "showingUniversalTime", ref showingUniversalTime);
+            getValue(config, "showingEarthTime", ref showingEarthTime);
+            getValue(config, "showingKerbinTime", ref showingKerbinTime);
+            getValue(config, "showingRealTime", ref showingRealTime);
 
-        getValue(config, "initialOffsetInEarthSeconds", ref initialOffsetInEarthSeconds);
-        getValue(config, "kerbinSecondsPerEarthSecond", ref kerbinSecondsPerEarthSecond);
-        getValue(config, "kerbinSecondsPerMinute", ref kerbinSecondsPerMinute);
-        getValue(config, "kerbinMinutesPerHour", ref kerbinMinutesPerHour);
-        getValue(config, "kerbinHoursPerDay", ref kerbinHoursPerDay);
-        getValue(config, "kerbinDaysPerMonth", ref kerbinDaysPerMonth);
-        getValue(config, "kerbinMonthsPerYear", ref kerbinMonthsPerYear);
+            getValue(config, "initialOffsetInEarthSeconds", ref initialOffsetInEarthSeconds);
+            getValue(config, "earthSecondsPerKerbinDay", ref earthSecondsPerKerbinDay);
+            getValue(config, "kerbinSecondsPerMinute", ref kerbinSecondsPerMinute);
+            getValue(config, "kerbinMinutesPerHour", ref kerbinMinutesPerHour);
+            getValue(config, "kerbinHoursPerDay", ref kerbinHoursPerDay);
+            getValue(config, "kerbinDaysPerMonth", ref kerbinDaysPerMonth);
+            getValue(config, "kerbinMonthsPerYear", ref kerbinMonthsPerYear);
 
-        mainWindow.Load(config, "mainWindow");
-        configWindow.Load(config, "configWindow");
-        helpWindow.Load(config, "helpWindow");
+            mainWindow.Load(config, "mainWindow");
+            configWindow.Load(config, "configWindow");
+            helpWindow.Load(config, "helpWindow");
 
-        int newValue;
-        if (config.HasValue("buttonStyle.padding.left") && int.TryParse(config.GetValue("buttonStyle.padding.left"), out newValue))
-        {
-            buttonPadding.left = newValue;
-        }
-        if (config.HasValue("buttonStyle.padding.right") && int.TryParse(config.GetValue("buttonStyle.padding.right"), out newValue))
-        {
-            buttonPadding.right = newValue;
-        }
-        if (config.HasValue("buttonStyle.padding.top") && int.TryParse(config.GetValue("buttonStyle.padding.top"), out newValue))
-        {
-            buttonPadding.top = newValue;
-        }
-        if (config.HasValue("buttonStyle.padding.bottom") && int.TryParse(config.GetValue("buttonStyle.padding.bottom"), out newValue))
-        {
-            buttonPadding.bottom = newValue;
-        }
+            int newValue;
+            if (config.HasValue("buttonStyle.padding.left") && int.TryParse(config.GetValue("buttonStyle.padding.left"), out newValue))
+            {
+                buttonPadding.left = newValue;
+            }
+            if (config.HasValue("buttonStyle.padding.right") && int.TryParse(config.GetValue("buttonStyle.padding.right"), out newValue))
+            {
+                buttonPadding.right = newValue;
+            }
+            if (config.HasValue("buttonStyle.padding.top") && int.TryParse(config.GetValue("buttonStyle.padding.top"), out newValue))
+            {
+                buttonPadding.top = newValue;
+            }
+            if (config.HasValue("buttonStyle.padding.bottom") && int.TryParse(config.GetValue("buttonStyle.padding.bottom"), out newValue))
+            {
+                buttonPadding.bottom = newValue;
+            }
 
-        if (config.HasValue("buttonStyle.margin.left") && int.TryParse(config.GetValue("buttonStyle.margin.left"), out newValue))
-        {
-            buttonMargin.left = newValue;
+            if (config.HasValue("buttonStyle.margin.left") && int.TryParse(config.GetValue("buttonStyle.margin.left"), out newValue))
+            {
+                buttonMargin.left = newValue;
+            }
+            if (config.HasValue("buttonStyle.margin.right") && int.TryParse(config.GetValue("buttonStyle.margin.right"), out newValue))
+            {
+                buttonMargin.right = newValue;
+            }
+            if (config.HasValue("buttonStyle.margin.top") && int.TryParse(config.GetValue("buttonStyle.margin.top"), out newValue))
+            {
+                buttonMargin.top = newValue;
+            }
+            if (config.HasValue("buttonStyle.margin.bottom") && int.TryParse(config.GetValue("buttonStyle.margin.bottom"), out newValue))
+            {
+                buttonMargin.bottom = newValue;
+            }
         }
-        if (config.HasValue("buttonStyle.margin.right") && int.TryParse(config.GetValue("buttonStyle.margin.right"), out newValue))
+        catch
         {
-            buttonMargin.right = newValue;
-        }
-        if (config.HasValue("buttonStyle.margin.top") && int.TryParse(config.GetValue("buttonStyle.margin.top"), out newValue))
-        {
-            buttonMargin.top = newValue;
-        }
-        if (config.HasValue("buttonStyle.margin.bottom") && int.TryParse(config.GetValue("buttonStyle.margin.bottom"), out newValue))
-        {
-            buttonMargin.bottom = newValue;
+            Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: failed to load file: an exception was thrown.");
         }
     }
 
     public override void OnSave(ConfigNode node)
     {
         base.OnSave(node);
+        try
+        {
+            ConfigNode config = new ConfigNode();
+            config.AddValue("debug", debug);
 
-        ConfigNode config = new ConfigNode();
-        config.AddValue("debug", debug);
+            config.AddValue("showingUniversalTime", showingUniversalTime);
+            config.AddValue("showingEarthTime", showingEarthTime);
+            config.AddValue("showingKerbinTime", showingKerbinTime);
+            config.AddValue("showingRealTime", showingRealTime);
 
-        config.AddValue("showingUniversalTime", showingUniversalTime);
-        config.AddValue("showingEarthTime", showingEarthTime);
-        config.AddValue("showingKerbinTime", showingKerbinTime);
-        config.AddValue("showingRealTime", showingRealTime);
+            config.AddValue("initialOffsetInEarthSeconds", initialOffsetInEarthSeconds);
+            config.AddValue("earthSecondsPerKerbinDay", earthSecondsPerKerbinDay);
+            config.AddValue("kerbinSecondsPerMinute", kerbinSecondsPerMinute);
+            config.AddValue("kerbinMinutesPerHour", kerbinMinutesPerHour);
+            config.AddValue("kerbinHoursPerDay", kerbinHoursPerDay);
+            config.AddValue("kerbinDaysPerMonth", kerbinDaysPerMonth);
+            config.AddValue("kerbinMonthsPerYear", kerbinMonthsPerYear);
 
-        config.AddValue("initialOffsetInEarthSeconds", initialOffsetInEarthSeconds);
-        config.AddValue("kerbinSecondsPerEarthSecond", kerbinSecondsPerEarthSecond);
-        config.AddValue("kerbinSecondsPerMinute", kerbinSecondsPerMinute);
-        config.AddValue("kerbinMinutesPerHour", kerbinMinutesPerHour);
-        config.AddValue("kerbinHoursPerDay", kerbinHoursPerDay);
-        config.AddValue("kerbinDaysPerMonth", kerbinDaysPerMonth);
-        config.AddValue("kerbinMonthsPerYear", kerbinMonthsPerYear);
+            mainWindow.Save(config, "mainWindow");
+            configWindow.Save(config, "configWindow");
+            helpWindow.Save(config, "helpWindow");
 
-        mainWindow.Save(config, "mainWindow");
-        configWindow.Save(config, "configWindow");
-        helpWindow.Save(config, "helpWindow");
+            config.AddValue("buttonStyle.padding.left", buttonStyle.padding.left);
+            config.AddValue("buttonStyle.padding.right", buttonStyle.padding.right);
+            config.AddValue("buttonStyle.padding.top", buttonStyle.padding.top);
+            config.AddValue("buttonStyle.padding.bottom", buttonStyle.padding.bottom);
 
-        config.AddValue("buttonStyle.padding.left", buttonStyle.padding.left);
-        config.AddValue("buttonStyle.padding.right", buttonStyle.padding.right);
-        config.AddValue("buttonStyle.padding.top", buttonStyle.padding.top);
-        config.AddValue("buttonStyle.padding.bottom", buttonStyle.padding.bottom);
+            config.AddValue("buttonStyle.margin.left", buttonStyle.margin.left);
+            config.AddValue("buttonStyle.margin.right", buttonStyle.margin.right);
+            config.AddValue("buttonStyle.margin.top", buttonStyle.margin.top);
+            config.AddValue("buttonStyle.margin.bottom", buttonStyle.margin.bottom);
 
-        config.AddValue("buttonStyle.margin.left", buttonStyle.margin.left);
-        config.AddValue("buttonStyle.margin.right", buttonStyle.margin.right);
-        config.AddValue("buttonStyle.margin.top", buttonStyle.margin.top);
-        config.AddValue("buttonStyle.margin.bottom", buttonStyle.margin.bottom);
-
-        config.Save(filename);
-        Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: saved to file: " + node);
+            config.Save(filename);
+            Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: saved to file: " + config);
+        }
+        catch
+        {
+            Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: failed to save config file");
+        }
     }
 
     private static void getValue(ConfigNode config, string name, ref bool value)
@@ -551,7 +576,9 @@ public class TacAtomicClock : PartModule
 
         private String GetKerbinTime2(double ut)
         {
-            int seconds = (int)((ut + parent.initialOffsetInEarthSeconds) * parent.kerbinSecondsPerEarthSecond);
+            double kerbinSecondsPerEarthSecond = (parent.kerbinSecondsPerMinute * parent.kerbinMinutesPerHour * parent.kerbinHoursPerDay) / parent.earthSecondsPerKerbinDay;
+
+            int seconds = (int)((ut + parent.initialOffsetInEarthSeconds) * kerbinSecondsPerEarthSecond);
 
             int minutes = (int)(seconds / parent.kerbinSecondsPerMinute);
             seconds -= (int)(minutes * parent.kerbinSecondsPerMinute);
@@ -751,11 +778,11 @@ public class TacAtomicClock : PartModule
 
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Kerbin seconds per Earth second", labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Label("Earth seconds per Kerbin day", labelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.FlexibleSpace();
-                if (double.TryParse(GUILayout.TextField(parent.kerbinSecondsPerEarthSecond.ToString(), 10), out temp2))
+                if (double.TryParse(GUILayout.TextField(parent.earthSecondsPerKerbinDay.ToString(), 10), out temp2))
                 {
-                    parent.kerbinSecondsPerEarthSecond = temp2;
+                    parent.earthSecondsPerKerbinDay = temp2;
                 }
                 GUILayout.EndHorizontal();
 
