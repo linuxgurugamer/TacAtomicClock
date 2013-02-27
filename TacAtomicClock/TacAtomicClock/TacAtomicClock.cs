@@ -402,7 +402,7 @@ public class TacAtomicClock : PartModule
 
             if (parent.showingUniversalTime)
             {
-                GUILayout.Label("UT: " + ((int)ut).ToString("#,#"), labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Label("UT: " + ((long)ut).ToString("#,#"), labelStyle, GUILayout.ExpandWidth(true));
             }
             if (parent.showingEarthTime)
             {
@@ -414,7 +414,6 @@ public class TacAtomicClock : PartModule
                 if (parent.debug)
                 {
                     GUILayout.Label("KT: " + GetKerbinTimeSideReel(ut), labelStyle, GUILayout.ExpandWidth(true));
-                    GUILayout.Label("KT: " + GetKerbinTime2(ut), labelStyle, GUILayout.ExpandWidth(true));
                 }
             }
             if (parent.showingRealTime)
@@ -430,36 +429,32 @@ public class TacAtomicClock : PartModule
         protected String GetEarthTime(double ut)
         {
             const double SECONDS_PER_MINUTE = 60.0;
-            const double SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60.0; // 3,600
-            const double SECONDS_PER_DAY = SECONDS_PER_HOUR * 24.0; // 86,400
-            const double SECONDS_PER_YEAR = SECONDS_PER_DAY * 365.0; // 31,536,000
-            const double SECONDS_PER_MONTH = SECONDS_PER_DAY * 30;// SECONDS_PER_YEAR / 12.0; // 2,628,000 seconds, 30.4 days
+            const double MINUTES_PER_HOUR = 60.0;
+            const double HOURS_PER_DAY = 24.0;
+            const double DAYS_PER_MONTH = 365.25 / 12.0; // 30.4375 days
+            const double MONTHS_PER_YEAR = 12.0;
 
-            double temp = ut;
+            long seconds = (long)(ut);
 
-            int years = (int)(temp / SECONDS_PER_YEAR);
-            temp -= years * SECONDS_PER_YEAR;
+            long minutes = (long)(seconds / SECONDS_PER_MINUTE);
+            seconds -= (long)(minutes * SECONDS_PER_MINUTE);
 
-            int months = (int)(temp / SECONDS_PER_MONTH);
-            temp -= months * SECONDS_PER_MONTH;
+            long hours = (long)(minutes / MINUTES_PER_HOUR);
+            minutes -= (long)(hours * MINUTES_PER_HOUR);
 
-            int days = (int)(temp / SECONDS_PER_DAY);
-            temp -= days * SECONDS_PER_DAY;
+            long days = (long)(hours / HOURS_PER_DAY);
+            hours -= (long)(days * HOURS_PER_DAY);
 
-            int hours = (int)(temp / SECONDS_PER_HOUR);
-            temp -= hours * SECONDS_PER_HOUR;
+            long months = (long)(days / DAYS_PER_MONTH);
+            days -= (long)(months * DAYS_PER_MONTH);
 
-            int minutes = (int)(temp / SECONDS_PER_MINUTE);
-            temp -= minutes * SECONDS_PER_MINUTE;
-
-            int seconds = (int)(temp);
+            long years = (long)(months / MONTHS_PER_YEAR);
+            months -= (long)(years * MONTHS_PER_YEAR);
 
             // The game starts on Year 1, Day 1
             years += 1;
             months += 1;
             days += 1;
-
-            // TODO adjust for leap years?
 
             return years.ToString("00") + ":"
                 + months.ToString("00") + ":"
@@ -472,29 +467,27 @@ public class TacAtomicClock : PartModule
         private String GetKerbinTimeSideReel(double ut)
         {
             const double SECONDS_PER_MINUTE = 60.0;
-            const double SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60.0; // 3,600 seconds
-            const double SECONDS_PER_DAY = SECONDS_PER_HOUR * 6.0; // 6 hours = 21,600 seconds
-            const double SECONDS_PER_MONTH = SECONDS_PER_HOUR * 38.6; // 38.6 hours = 138,960 seconds
-            const double SECONDS_PER_YEAR = SECONDS_PER_HOUR * 2556.50; // 2556.50 hours = 9,203,400 seconds
+            const double MINUTES_PER_HOUR = 60.0;
+            const double HOURS_PER_DAY = 6.0;
+            const double DAYS_PER_MONTH = 38.6 / HOURS_PER_DAY; // 38.6 hours, 6.43 days
+            const double MONTHS_PER_YEAR = 2556.50 / HOURS_PER_DAY / DAYS_PER_MONTH; // 2556.50 hours, 66.26 months
 
-            double temp = ut;
+            long seconds = (long)(ut);
 
-            int years = (int)(temp / SECONDS_PER_YEAR);
-            temp -= years * SECONDS_PER_YEAR;
+            long minutes = (long)(seconds / SECONDS_PER_MINUTE);
+            seconds -= (long)(minutes * SECONDS_PER_MINUTE);
 
-            int months = (int)(temp / SECONDS_PER_MONTH);
-            temp -= months * SECONDS_PER_MONTH;
+            long hours = (long)(minutes / MINUTES_PER_HOUR);
+            minutes -= (long)(hours * MINUTES_PER_HOUR);
 
-            int days = (int)(temp / SECONDS_PER_DAY);
-            temp -= days * SECONDS_PER_DAY;
+            long days = (long)(hours / HOURS_PER_DAY);
+            hours -= (long)(days * HOURS_PER_DAY);
 
-            int hours = (int)(temp / SECONDS_PER_HOUR);
-            temp -= hours * SECONDS_PER_HOUR;
+            long months = (long)(days / DAYS_PER_MONTH);
+            days -= (long)(months * DAYS_PER_MONTH);
 
-            int minutes = (int)(temp / SECONDS_PER_MINUTE);
-            temp -= minutes * SECONDS_PER_MINUTE;
-
-            int seconds = (int)(temp);
+            long years = (long)(months / MONTHS_PER_YEAR);
+            months -= (long)(years * MONTHS_PER_YEAR);
 
             // The game starts on Year 1, Day 1
             years += 1;
@@ -511,89 +504,24 @@ public class TacAtomicClock : PartModule
 
         private String GetKerbinTime(double ut)
         {
-            // ****************************************************************************
-            double initialOffsetInEarthSeconds;
-            double kerbinSecondsPerEarthSecond;
-            double kerbinSecondsPerMinute;
-            double kerbinSecondsPerHour;
-            double kerbinSecondsPerDay;
-            double kerbinSecondsPerMonth;
-            double kerbinSecondsPerYear;
-
-            // ****************************************************************************
-
-            // from the wiki, TODO are they accurate?
-            const double earthHoursPerKerbinDay = 6 + 50.0 / 3600.0; // 6 hours and 50 seconds, or 21650 seconds
-            const double earthHoursPerKerbinMonth = 38.6;
-            const double earthHoursPerKerbinYear = 2556.5;
-
-            // Given that Kerbals have 4 fingers (including thumbs) and 2 joints per finger,
-            // they can count to 6 on the three fingers on one hand, and multiply by the four fingers on the other hand for 24
-            kerbinSecondsPerMinute = 24.0;
-            kerbinSecondsPerHour = kerbinSecondsPerMinute * 24.0; // 576 seconds
-            kerbinSecondsPerDay = kerbinSecondsPerHour * 12.0; // 6912 seconds
-
-            double earthHoursPerKerbinHour = earthHoursPerKerbinDay / 12.0;
-            kerbinSecondsPerMonth = kerbinSecondsPerHour * earthHoursPerKerbinMonth / earthHoursPerKerbinHour;
-            kerbinSecondsPerYear = kerbinSecondsPerHour * earthHoursPerKerbinYear / earthHoursPerKerbinHour;
-
-            kerbinSecondsPerEarthSecond = kerbinSecondsPerDay / (earthHoursPerKerbinDay * 3600.0);
-            initialOffsetInEarthSeconds = 0.0;
-
-            // ****************************************************************************
-
-            double temp = (ut + initialOffsetInEarthSeconds) * kerbinSecondsPerEarthSecond;
-
-            int years = (int)(temp / kerbinSecondsPerYear);
-            temp -= years * kerbinSecondsPerYear;
-
-            int months = (int)(temp / kerbinSecondsPerMonth);
-            temp -= months * kerbinSecondsPerMonth;
-
-            int days = (int)(temp / kerbinSecondsPerDay);
-            temp -= days * kerbinSecondsPerDay;
-
-            int hours = (int)(temp / kerbinSecondsPerHour);
-            temp -= hours * kerbinSecondsPerHour;
-
-            int minutes = (int)(temp / kerbinSecondsPerMinute);
-            temp -= minutes * kerbinSecondsPerMinute;
-
-            int seconds = (int)(temp);
-
-            // The game starts on Year 1, Day 1
-            years += 1;
-            months += 1;
-            days += 1;
-
-            return years.ToString("00") + ":"
-                + months.ToString("00") + ":"
-                + days.ToString("00") + " "
-                + hours.ToString("00") + ":"
-                + minutes.ToString("00") + ":"
-                + seconds.ToString("00") + " (solar days)";
-        }
-
-        private String GetKerbinTime2(double ut)
-        {
             double kerbinSecondsPerEarthSecond = (parent.kerbinSecondsPerMinute * parent.kerbinMinutesPerHour * parent.kerbinHoursPerDay) / parent.earthSecondsPerKerbinDay;
 
-            int seconds = (int)((ut + parent.initialOffsetInEarthSeconds) * kerbinSecondsPerEarthSecond);
+            long seconds = (long)((ut + parent.initialOffsetInEarthSeconds) * kerbinSecondsPerEarthSecond);
 
-            int minutes = (int)(seconds / parent.kerbinSecondsPerMinute);
-            seconds -= (int)(minutes * parent.kerbinSecondsPerMinute);
+            long minutes = (long)(seconds / parent.kerbinSecondsPerMinute);
+            seconds -= (long)(minutes * parent.kerbinSecondsPerMinute);
 
-            int hours = (int)(minutes / parent.kerbinMinutesPerHour);
-            minutes -= (int)(hours * parent.kerbinMinutesPerHour);
+            long hours = (long)(minutes / parent.kerbinMinutesPerHour);
+            minutes -= (long)(hours * parent.kerbinMinutesPerHour);
 
-            int days = (int)(hours / parent.kerbinHoursPerDay);
-            hours -= (int)(days * parent.kerbinHoursPerDay);
+            long days = (long)(hours / parent.kerbinHoursPerDay);
+            hours -= (long)(days * parent.kerbinHoursPerDay);
 
-            int months = (int)(days / parent.kerbinDaysPerMonth);
-            days -= (int)(months * parent.kerbinDaysPerMonth);
+            long months = (long)(days / parent.kerbinDaysPerMonth);
+            days -= (long)(months * parent.kerbinDaysPerMonth);
 
-            int years = (int)(months / parent.kerbinMonthsPerYear);
-            months -= (int)(years * parent.kerbinMonthsPerYear);
+            long years = (long)(months / parent.kerbinMonthsPerYear);
+            months -= (long)(years * parent.kerbinMonthsPerYear);
 
             // The game starts on Year 1, Day 1
             years += 1;
@@ -605,7 +533,7 @@ public class TacAtomicClock : PartModule
                 + days.ToString("00") + " "
                 + hours.ToString("00") + ":"
                 + minutes.ToString("00") + ":"
-                + seconds.ToString("00") + " (solar days v2)";
+                + seconds.ToString("00");
         }
     }
 
