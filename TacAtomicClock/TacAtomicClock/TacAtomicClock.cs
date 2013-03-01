@@ -260,123 +260,47 @@ public class TacAtomicClock : PartModule
         mainWindow.SetVisible(!mainWindow.IsVisible());
     }
 
-    private class MainWindow
+    private class MainWindow : Window
     {
-        private bool visible = false;
-        private Rect windowPos = new Rect(60, 60, 60, 60);
-        private String windowTitle = "TAC Atomic Clock";
         private TacAtomicClock parent;
 
         public MainWindow(TacAtomicClock parent)
+            : base("TAC Atomic Clock", parent)
         {
             this.parent = parent;
         }
 
-        public bool IsVisible()
+        public override void SetVisible(bool newValue)
         {
-            return visible;
-        }
+            base.SetVisible(true);
 
-        public void SetVisible(bool newValue)
-        {
             if (newValue)
             {
-                if (!visible)
-                {
-                    RenderingManager.AddToPostDrawQueue(3, new Callback(CreateWindow));
-                    parent.Events["ShowClockEvent"].active = false;
-                    parent.Events["HideClockEvent"].active = true;
-                }
+                parent.Events["ShowClockEvent"].active = false;
+                parent.Events["HideClockEvent"].active = true;
             }
             else
             {
-                if (visible)
-                {
-                    RenderingManager.RemoveFromPostDrawQueue(3, new Callback(CreateWindow));
-                    parent.Events["ShowClockEvent"].active = true;
-                    parent.Events["HideClockEvent"].active = false;
-                    parent.configWindow.SetVisible(false);
-                    parent.helpWindow.SetVisible(false);
-                }
+                parent.Events["ShowClockEvent"].active = true;
+                parent.Events["HideClockEvent"].active = false;
+                parent.configWindow.SetVisible(false);
+                parent.helpWindow.SetVisible(false);
             }
-
-            this.visible = newValue;
         }
 
-        public void SetSize(int width, int height)
+        protected override void CreateWindow()
         {
-            windowPos.width = width;
-            windowPos.height = height;
+            if (parent.buttonStyle == null)
+            {
+                parent.buttonStyle = new GUIStyle(GUI.skin.button);
+                parent.buttonStyle.padding = parent.buttonPadding;
+                parent.buttonStyle.margin = parent.buttonMargin;
+            }
+
+            base.CreateWindow();
         }
 
-        public void Load(ConfigNode config, string subnode)
-        {
-            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Load " + subnode);
-            if (config.HasNode(subnode))
-            {
-                ConfigNode windowConfig = config.GetNode(subnode);
-
-                float newValue;
-                if (windowConfig.HasValue("xPos") && float.TryParse(windowConfig.GetValue("xPos"), out newValue))
-                {
-                    windowPos.xMin = newValue;
-                }
-
-                if (windowConfig.HasValue("yPos") && float.TryParse(windowConfig.GetValue("yPos"), out newValue))
-                {
-                    windowPos.yMin = newValue;
-                }
-            }
-        }
-
-        public void Save(ConfigNode config, string subnode)
-        {
-            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Save " + subnode);
-
-            ConfigNode windowConfig;
-            if (config.HasNode(subnode))
-            {
-                windowConfig = config.GetNode(subnode);
-            }
-            else
-            {
-                windowConfig = new ConfigNode(subnode);
-                config.AddNode(windowConfig);
-            }
-
-            windowConfig.AddValue("xPos", windowPos.xMin);
-            windowConfig.AddValue("yPos", windowPos.yMin);
-        }
-
-        private void CreateWindow()
-        {
-            try
-            {
-                if (parent.part.State != PartStates.DEAD && parent.vessel.isActiveVessel)
-                {
-                    GUI.skin = HighLogic.Skin;
-
-                    if (parent.buttonStyle == null)
-                    {
-                        parent.buttonStyle = new GUIStyle(GUI.skin.button);
-                        parent.buttonStyle.padding = parent.buttonPadding;
-                        parent.buttonStyle.margin = parent.buttonMargin;
-                    }
-
-                    windowPos = GUILayout.Window(windowTitle.GetHashCode(), windowPos, Draw, windowTitle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-                }
-                else
-                {
-                    SetVisible(false);
-                }
-            }
-            catch
-            {
-                SetVisible(false);
-            }
-        }
-
-        private void Draw(int windowID)
+        protected override void Draw(int windowID)
         {
             GUILayout.BeginVertical();
 
@@ -426,7 +350,7 @@ public class TacAtomicClock : PartModule
             GUI.DragWindow();
         }
 
-        protected String GetEarthTime(double ut)
+        private String GetEarthTime(double ut)
         {
             const double SECONDS_PER_MINUTE = 60.0;
             const double MINUTES_PER_HOUR = 60.0;
@@ -537,110 +461,18 @@ public class TacAtomicClock : PartModule
         }
     }
 
-    private class ConfigWindow
+    private class ConfigWindow : Window
     {
-        private bool visible = false;
         private bool showAdvanced = false;
-        private Rect windowPos = new Rect(60, 60, 60, 60);
-        private String windowTitle = "TAC Clock Config";
         private TacAtomicClock parent;
 
         public ConfigWindow(TacAtomicClock parent)
+            : base("TAC Clock Config", parent)
         {
             this.parent = parent;
         }
 
-        public bool IsVisible()
-        {
-            return visible;
-        }
-
-        public void SetVisible(bool newValue)
-        {
-            if (newValue)
-            {
-                if (!visible)
-                {
-                    RenderingManager.AddToPostDrawQueue(3, new Callback(CreateWindow));
-                }
-            }
-            else
-            {
-                if (visible)
-                {
-                    RenderingManager.RemoveFromPostDrawQueue(3, new Callback(CreateWindow));
-                }
-            }
-
-            this.visible = newValue;
-        }
-
-        public void SetSize(int width, int height)
-        {
-            windowPos.width = width;
-            windowPos.height = height;
-        }
-
-        public void Load(ConfigNode config, string subnode)
-        {
-            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Load " + subnode);
-            if (config.HasNode(subnode))
-            {
-                ConfigNode windowConfig = config.GetNode(subnode);
-
-                float newValue;
-                if (windowConfig.HasValue("xPos") && float.TryParse(windowConfig.GetValue("xPos"), out newValue))
-                {
-                    windowPos.xMin = newValue;
-                }
-
-                if (windowConfig.HasValue("yPos") && float.TryParse(windowConfig.GetValue("yPos"), out newValue))
-                {
-                    windowPos.yMin = newValue;
-                }
-            }
-        }
-
-        public void Save(ConfigNode config, string subnode)
-        {
-            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Save " + subnode);
-
-            ConfigNode windowConfig;
-            if (config.HasNode(subnode))
-            {
-                windowConfig = config.GetNode(subnode);
-            }
-            else
-            {
-                windowConfig = new ConfigNode(subnode);
-                config.AddNode(windowConfig);
-            }
-
-            windowConfig.AddValue("xPos", windowPos.xMin);
-            windowConfig.AddValue("yPos", windowPos.yMin);
-        }
-
-        private void CreateWindow()
-        {
-            try
-            {
-                if (parent.part.State != PartStates.DEAD && parent.vessel.isActiveVessel)
-                {
-                    GUI.skin = HighLogic.Skin;
-                    windowPos = GUILayout.Window(windowTitle.GetHashCode(), windowPos, Draw, windowTitle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-                }
-                else
-                {
-                    SetVisible(false);
-                }
-            }
-            catch
-            {
-                SetVisible(false);
-            }
-        }
-
-        private void Draw(int windowID)
+        protected override void Draw(int windowID)
         {
             GUILayout.BeginVertical();
 
@@ -853,103 +685,17 @@ public class TacAtomicClock : PartModule
         }
     }
 
-    private class HelpWindow
+    private class HelpWindow : Window
     {
-        private bool visible = false;
-        private Rect windowPos = new Rect(60, 60, 60, 60);
-        private String windowTitle = "TAC Clock Help";
         private TacAtomicClock parent;
 
         public HelpWindow(TacAtomicClock parent)
+            : base("TAC Clock Help", parent)
         {
             this.parent = parent;
         }
 
-        public bool IsVisible()
-        {
-            return visible;
-        }
-
-        public void SetVisible(bool newValue)
-        {
-            if (newValue)
-            {
-                if (!visible)
-                {
-                    RenderingManager.AddToPostDrawQueue(3, new Callback(CreateWindow));
-                }
-            }
-            else
-            {
-                if (visible)
-                {
-                    RenderingManager.RemoveFromPostDrawQueue(3, new Callback(CreateWindow));
-                }
-            }
-
-            this.visible = newValue;
-        }
-
-        public void Load(ConfigNode config, string subnode)
-        {
-            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Load " + subnode);
-            if (config.HasNode(subnode))
-            {
-                ConfigNode windowConfig = config.GetNode(subnode);
-
-                float newValue;
-                if (windowConfig.HasValue("xPos") && float.TryParse(windowConfig.GetValue("xPos"), out newValue))
-                {
-                    windowPos.xMin = newValue;
-                }
-
-                if (windowConfig.HasValue("yPos") && float.TryParse(windowConfig.GetValue("yPos"), out newValue))
-                {
-                    windowPos.yMin = newValue;
-                }
-            }
-        }
-
-        public void Save(ConfigNode config, string subnode)
-        {
-            Debug.Log("TAC Atomic Clock [" + Time.time + "]: Save " + subnode);
-
-            ConfigNode windowConfig;
-            if (config.HasNode(subnode))
-            {
-                windowConfig = config.GetNode(subnode);
-            }
-            else
-            {
-                windowConfig = new ConfigNode(subnode);
-                config.AddNode(windowConfig);
-            }
-
-            windowConfig.AddValue("xPos", windowPos.xMin);
-            windowConfig.AddValue("yPos", windowPos.yMin);
-        }
-
-        private void CreateWindow()
-        {
-            try
-            {
-                if (parent.part.State != PartStates.DEAD && parent.vessel.isActiveVessel)
-                {
-                    GUI.skin = HighLogic.Skin;
-                    windowPos = GUILayout.Window(windowTitle.GetHashCode(), windowPos, Draw, windowTitle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true), GUILayout.MinWidth(300.0f));
-                }
-                else
-                {
-                    SetVisible(false);
-                }
-            }
-            catch
-            {
-                SetVisible(false);
-            }
-        }
-
-        private void Draw(int windowID)
+        protected override void Draw(int windowID)
         {
             GUILayout.BeginVertical();
 
