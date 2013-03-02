@@ -11,11 +11,13 @@ abstract class Window
     private Rect windowPos = new Rect(60, 60, 60, 60);
     private string windowTitle;
     private PartModule partModule;
+    private int windowId;
 
     protected Window(string windowTitle, PartModule partModule)
     {
         this.windowTitle = windowTitle;
         this.partModule = partModule;
+        this.windowId = windowTitle.GetHashCode() + new System.Random().Next(65536);
     }
 
     public bool IsVisible()
@@ -95,7 +97,7 @@ abstract class Window
             if (partModule.part.State != PartStates.DEAD && partModule.vessel.isActiveVessel)
             {
                 GUI.skin = HighLogic.Skin;
-                windowPos = GUILayout.Window(windowTitle.GetHashCode(), windowPos, Draw, windowTitle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+                windowPos = GUILayout.Window(windowId, windowPos, Draw, windowTitle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
             }
             else
             {
