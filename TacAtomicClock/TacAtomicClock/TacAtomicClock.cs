@@ -79,7 +79,7 @@ public class TacAtomicClock : PartModule
             vessel.OnJustAboutToBeDestroyed += CleanUp;
             part.OnJustAboutToBeDestroyed += CleanUp;
 
-            mainWindow.SetVisible(true);
+            //mainWindow.SetVisible(true);
         }
     }
 
@@ -272,7 +272,7 @@ public class TacAtomicClock : PartModule
 
         public override void SetVisible(bool newValue)
         {
-            base.SetVisible(true);
+            base.SetVisible(newValue);
 
             if (newValue)
             {
