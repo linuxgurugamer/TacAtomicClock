@@ -62,6 +62,8 @@ public class TacAtomicClock : PartModule
     public override void OnAwake()
     {
         Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: OnAwake");
+        base.OnAwake();
+
         mainWindow = new MainWindow(this);
         configWindow = new ConfigWindow(this);
         helpWindow = new HelpWindow(this);
@@ -100,8 +102,6 @@ public class TacAtomicClock : PartModule
         {
             vessel.OnJustAboutToBeDestroyed += CleanUp;
             part.OnJustAboutToBeDestroyed += CleanUp;
-
-            //mainWindow.SetVisible(true);
         }
     }
 
@@ -115,7 +115,7 @@ public class TacAtomicClock : PartModule
             if (File.Exists<TacAtomicClock>(filename))
             {
                 config = ConfigNode.Load(filename);
-                Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: loaded from file: " + node);
+                Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: loaded from file: " + config);
             }
             else
             {
@@ -261,14 +261,14 @@ public class TacAtomicClock : PartModule
         helpWindow.SetVisible(false);
     }
 
-    [KSPEvent(guiActive = true, guiName = "Show TAC Atomic Clock", active = false)]
+    [KSPEvent(guiActive = true, guiName = "Show TAC Atomic Clock", active = true)]
     public void ShowClockEvent()
     {
         Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: shown by right click");
         mainWindow.SetVisible(true);
     }
 
-    [KSPEvent(guiActive = true, guiName = "Hide TAC Atomic Clock")]
+    [KSPEvent(guiActive = true, guiName = "Hide TAC Atomic Clock", active = false)]
     public void HideClockEvent()
     {
         Debug.Log("TAC Atomic Clock [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: hidden by right click");
