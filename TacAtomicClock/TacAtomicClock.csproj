@@ -53,6 +53,7 @@
     <Compile Include="..\..\TacLib\Window.cs">
       <Link>Window.cs</Link>
     </Compile>
+    <Compile Include="TacAtomicClockMain.cs" />
     <Compile Include="TacAtomicClock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
