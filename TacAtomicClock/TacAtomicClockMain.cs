@@ -114,23 +114,26 @@ public class TacAtomicClockMain : MonoBehaviour
 
     void OnGUI()
     {
-        if (HighLogic.LoadedSceneIsFlight)
+        if (HighLogic.LoadedSceneIsFlight && !PauseMenu.isOpen)
         {
             Vessel vessel = FlightGlobals.ActiveVessel;
-            int numClocks = vessel.parts.Count(p => p.Modules.Contains("TacAtomicClock"));
-            if (vessel != null && numClocks >= 1)
+            if (vessel != null)
             {
-                GUI.skin = HighLogic.Skin;
-                if (buttonStyle == null)
+                int numClocks = vessel.parts.Count(p => p.Modules.Contains("TacAtomicClock"));
+                if (numClocks >= 1)
                 {
-                    buttonStyle = new GUIStyle(GUI.skin.button);
-                    buttonStyle.padding = buttonPadding;
-                    buttonStyle.margin = buttonMargin;
-                }
+                    GUI.skin = HighLogic.Skin;
+                    if (buttonStyle == null)
+                    {
+                        buttonStyle = new GUIStyle(GUI.skin.button);
+                        buttonStyle.padding = buttonPadding;
+                        buttonStyle.margin = buttonMargin;
+                    }
 
-                mainWindow.OnGUI();
-                configWindow.OnGUI();
-                helpWindow.OnGUI();
+                    mainWindow.OnGUI();
+                    configWindow.OnGUI();
+                    helpWindow.OnGUI();
+                }
             }
         }
     }
