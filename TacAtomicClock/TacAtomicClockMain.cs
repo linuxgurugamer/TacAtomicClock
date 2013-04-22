@@ -104,12 +104,6 @@ public class TacAtomicClockMain : MonoBehaviour
         debug = false;
 
         filename = IOUtils.GetFilePathFor(this.GetType(), "TacAtomicClock.cfg");
-        Debug.Log("TAC Atomic Clock (obj) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: filename = " + filename);
-    }
-
-    void Start()
-    {
-        Debug.Log("TAC Atomic Clock (obj) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: Start");
     }
 
     void OnGUI()
