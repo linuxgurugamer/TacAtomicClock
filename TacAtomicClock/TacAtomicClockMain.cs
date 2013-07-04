@@ -106,29 +106,30 @@ public class TacAtomicClockMain : MonoBehaviour
         filename = IOUtils.GetFilePathFor(this.GetType(), "TacAtomicClock.cfg");
     }
 
-    void OnGUI()
+    void FixedUpdate()
     {
-        if (HighLogic.LoadedSceneIsFlight && !PauseMenu.isOpen)
+        if (HighLogic.LoadedSceneIsFlight && mainWindow.IsVisible())
         {
             Vessel vessel = FlightGlobals.ActiveVessel;
             if (vessel != null)
             {
                 int numClocks = vessel.parts.Count(p => p.Modules.Contains("TacAtomicClock"));
-                if (numClocks >= 1)
+                if (numClocks < 1)
                 {
-                    GUI.skin = HighLogic.Skin;
-                    if (buttonStyle == null)
-                    {
-                        buttonStyle = new GUIStyle(GUI.skin.button);
-                        buttonStyle.padding = buttonPadding;
-                        buttonStyle.margin = buttonMargin;
-                    }
-
-                    mainWindow.OnGUI();
-                    configWindow.OnGUI();
-                    helpWindow.OnGUI();
+                    mainWindow.SetVisible(false);
                 }
             }
+        }
+    }
+
+    void OnGUI()
+    {
+        if (buttonStyle == null && HighLogic.LoadedSceneIsFlight)
+        {
+            GUI.skin = HighLogic.Skin;
+            buttonStyle = new GUIStyle(GUI.skin.button);
+            buttonStyle.padding = buttonPadding;
+            buttonStyle.margin = buttonMargin;
         }
     }
 
