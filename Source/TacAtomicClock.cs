@@ -40,7 +40,6 @@ namespace Tac
         public override void OnAwake()
         {
             base.OnAwake();
-            clock = TacAtomicClockMain.Instance;
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -48,6 +47,8 @@ namespace Tac
             base.OnStart(state);
             if (state != StartState.Editor)
             {
+                clock = TacAtomicClockMain.Instance;
+
                 clock.Observers += UpdateEvents;
                 UpdateEvents(clock.IsVisible());
 
@@ -59,13 +60,19 @@ namespace Tac
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);
-            clock.Load();
+            if (clock != null)
+            {
+                clock.Load();
+            }
         }
 
         public override void OnSave(ConfigNode node)
         {
             base.OnSave(node);
-            clock.Save();
+            if (clock != null)
+            {
+                clock.Save();
+            }
         }
 
         [KSPEvent(guiActive = true, guiName = "Show TAC Atomic Clock", active = true)]

@@ -204,7 +204,7 @@ namespace Tac
             private GUIStyle labelStyle;
 
             public MainWindow(TacAtomicClockMain settings, SettingsWindow settingsWindow, HelpWindow helpWindow)
-                : base("TAC Atomic Clock", 10, 10)
+                : base("TAC Atomic Clock", 140, 150)
             {
                 this.settings = settings;
                 this.settingsWindow = settingsWindow;
@@ -396,7 +396,7 @@ namespace Tac
             private GUIStyle buttonStyle;
 
             public SettingsWindow(TacAtomicClockMain settings)
-                : base("TAC Clock Settings", 10, 10)
+                : base("TAC Clock Settings", 180, 230)
             {
                 this.settings = settings;
             }
@@ -509,6 +509,8 @@ namespace Tac
                 }
 
                 GUILayout.EndVertical();
+
+                GUILayout.Space(8);
             }
         }
 
@@ -519,7 +521,7 @@ namespace Tac
             private Vector2 scrollPosition;
 
             public HelpWindow()
-                : base("TAC Clock Help", 500, Screen.height * 0.75f)
+                : base("TAC Clock Help", 420, 360)
             {
                 scrollPosition = Vector2.zero;
             }
