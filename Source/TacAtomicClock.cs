@@ -31,67 +31,70 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-public class TacAtomicClock : PartModule
+namespace Tac
 {
-    private TacAtomicClockMain clock;
-
-    public override void OnAwake()
+    public class TacAtomicClock : PartModule
     {
-        base.OnAwake();
-        clock = TacAtomicClockMain.GetInstance();
-    }
+        private TacAtomicClockMain clock;
 
-    public override void OnStart(PartModule.StartState state)
-    {
-        base.OnStart(state);
-        if (state != StartState.Editor)
+        public override void OnAwake()
         {
-            clock.Observers += UpdateEvents;
-            UpdateEvents(clock.IsVisible());
-
-            part.OnJustAboutToBeDestroyed += CleanUp;
-            vessel.OnJustAboutToBeDestroyed += CleanUp;
+            base.OnAwake();
+            clock = TacAtomicClockMain.Instance;
         }
-    }
 
-    public override void OnLoad(ConfigNode node)
-    {
-        base.OnLoad(node);
-        clock.Load();
-    }
+        public override void OnStart(PartModule.StartState state)
+        {
+            base.OnStart(state);
+            if (state != StartState.Editor)
+            {
+                clock.Observers += UpdateEvents;
+                UpdateEvents(clock.IsVisible());
 
-    public override void OnSave(ConfigNode node)
-    {
-        base.OnSave(node);
-        clock.Save();
-    }
+                part.OnJustAboutToBeDestroyed += CleanUp;
+                vessel.OnJustAboutToBeDestroyed += CleanUp;
+            }
+        }
 
-    [KSPEvent(guiActive = true, guiName = "Show TAC Atomic Clock", active = true)]
-    public void ShowClockEvent()
-    {
-        clock.SetVisible(true);
-    }
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+            clock.Load();
+        }
 
-    [KSPEvent(guiActive = true, guiName = "Hide TAC Atomic Clock", active = false)]
-    public void HideClockEvent()
-    {
-        clock.SetVisible(false);
-    }
+        public override void OnSave(ConfigNode node)
+        {
+            base.OnSave(node);
+            clock.Save();
+        }
 
-    [KSPAction("Toggle TAC Atomic Clock")]
-    public void ToggleClockAction(KSPActionParam param)
-    {
-        clock.SetVisible(!clock.IsVisible());
-    }
+        [KSPEvent(guiActive = true, guiName = "Show TAC Atomic Clock", active = true)]
+        public void ShowClockEvent()
+        {
+            clock.SetVisible(true);
+        }
 
-    private void UpdateEvents(bool visible)
-    {
-        Events["ShowClockEvent"].active = !visible;
-        Events["HideClockEvent"].active = visible;
-    }
+        [KSPEvent(guiActive = true, guiName = "Hide TAC Atomic Clock", active = false)]
+        public void HideClockEvent()
+        {
+            clock.SetVisible(false);
+        }
 
-    private void CleanUp()
-    {
-        clock.Observers -= UpdateEvents;
+        [KSPAction("Toggle TAC Atomic Clock")]
+        public void ToggleClockAction(KSPActionParam param)
+        {
+            clock.SetVisible(!clock.IsVisible());
+        }
+
+        private void UpdateEvents(bool visible)
+        {
+            Events["ShowClockEvent"].active = !visible;
+            Events["HideClockEvent"].active = visible;
+        }
+
+        private void CleanUp()
+        {
+            clock.Observers -= UpdateEvents;
+        }
     }
 }
