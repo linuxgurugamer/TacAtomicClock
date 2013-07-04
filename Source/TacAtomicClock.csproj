@@ -7,7 +7,7 @@
     <ProjectGuid>{0BC2FDB0-6BC2-4B9B-B9AA-A29CFAC30EA3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TacAtomicClock</RootNamespace>
+    <RootNamespace>Tac</RootNamespace>
     <AssemblyName>TacAtomicClock</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -63,6 +63,10 @@
     <Compile Include="..\..\TacLib\Source\Window.cs">
       <Link>Window.cs</Link>
     </Compile>
+    <Compile Include="MainWindow.cs" />
+    <Compile Include="HelpWindow.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="SettingsWindow.cs" />
     <Compile Include="TacAtomicClockMain.cs" />
     <Compile Include="TacAtomicClock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
