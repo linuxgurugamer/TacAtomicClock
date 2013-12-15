@@ -50,7 +50,7 @@ namespace Tac
 
         void Awake()
         {
-            Debug.Log("TAC Atomic Clock (TacAtomicClockMain) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: Awake");
+            this.Log("Awake");
             Instance = this;
 
             settings = new Settings();
@@ -65,7 +65,7 @@ namespace Tac
 
         void Start()
         {
-            Debug.Log("TAC Atomic Clock (TacAtomicClockMain) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: Start");
+            this.Log("Start");
         }
 
         void FixedUpdate()
@@ -90,7 +90,7 @@ namespace Tac
                 if (File.Exists<TacAtomicClockMain>(filename))
                 {
                     ConfigNode config = ConfigNode.Load(filename);
-                    Debug.Log("TAC Atomic Clock (TacAtomicClockMain) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: loaded from file: " + config);
+                    this.Log("loaded from file: " + config);
 
                     settings.Load(config);
 
@@ -105,12 +105,12 @@ namespace Tac
                 }
                 else
                 {
-                    Debug.Log("TAC Atomic Clock (TacAtomicClockMain) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: failed to load file: file does not exist");
+                    this.Log("failed to load file: file does not exist");
                 }
             }
             catch (Exception ex)
             {
-                Debug.Log("TAC Atomic Clock (TacAtomicClockMain) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: failed to load config file: " + ex.Message + "\n" + ex.StackTrace);
+                this.LogWarning("failed to load config file: " + ex.Message + "\n" + ex.StackTrace);
             }
         }
 
@@ -127,11 +127,11 @@ namespace Tac
                 helpWindow.Save(config);
 
                 config.Save(filename);
-                Debug.Log("TAC Atomic Clock (TacAtomicClockMain) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: saved to file: " + config);
+                this.Log("saved to file: " + config);
             }
             catch (Exception ex)
             {
-                Debug.Log("TAC Atomic Clock (TacAtomicClockMain) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: failed to save config file: " + ex.Message + "\n" + ex.StackTrace);
+                this.LogWarning("failed to save config file: " + ex.Message + "\n" + ex.StackTrace);
             }
         }
 

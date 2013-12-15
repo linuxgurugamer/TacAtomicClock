@@ -39,13 +39,13 @@ namespace Tac
 
         public override void OnAwake()
         {
-            Debug.Log("TAC Atomic Clock (TacAtomicClock) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: OnAwake");
+            this.Log("OnAwake");
             base.OnAwake();
         }
 
         public override void OnStart(PartModule.StartState state)
         {
-            Debug.Log("TAC Atomic Clock (TacAtomicClock) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: OnStart: " + state);
+            this.Log("OnStart: " + state);
             base.OnStart(state);
             if (state != StartState.Editor)
             {
@@ -61,7 +61,7 @@ namespace Tac
 
         public override void OnLoad(ConfigNode node)
         {
-            Debug.Log("TAC Atomic Clock (TacAtomicClock) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: OnLoad");
+            this.Log("OnLoad");
             base.OnLoad(node);
             if (TacAtomicClockMain.Instance != null)
             {
@@ -71,7 +71,7 @@ namespace Tac
 
         public override void OnSave(ConfigNode node)
         {
-            Debug.Log("TAC Atomic Clock (TacAtomicClock) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: OnSave");
+            this.Log("OnSave");
             base.OnSave(node);
             if (TacAtomicClockMain.Instance != null)
             {
@@ -105,7 +105,7 @@ namespace Tac
 
         private void CleanUp()
         {
-            Debug.Log("TAC Atomic Clock (TacAtomicClock) [" + this.GetInstanceID().ToString("X") + "][" + Time.time + "]: CleanUp");
+            this.Log("CleanUp");
             clock.Observers -= UpdateEvents;
         }
     }
