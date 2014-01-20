@@ -9,16 +9,19 @@ namespace Tac
     class SettingsWindow : Window<SettingsWindow>
     {
         private readonly Settings settings;
+        private readonly string version;
         private bool showAdvanced = false;
 
         private GUIStyle labelStyle;
         private GUIStyle editStyle;
         private GUIStyle buttonStyle;
+        private GUIStyle versionStyle;
 
         public SettingsWindow(Settings settings)
             : base("TAC Clock Settings", 180, 230)
         {
             this.settings = settings;
+            version = Utilities.GetDllVersion(this);
         }
 
         protected override void ConfigureStyles()
@@ -35,6 +38,8 @@ namespace Tac
                 editStyle = new GUIStyle(GUI.skin.textField);
 
                 buttonStyle = new GUIStyle(GUI.skin.button);
+
+                versionStyle = Utilities.GetVersionStyle();
             }
         }
 
@@ -131,6 +136,7 @@ namespace Tac
             GUILayout.EndVertical();
 
             GUILayout.Space(8);
+            GUI.Label(new Rect(4, windowPos.height - 14, windowPos.width - 20, 12), "TAC Atomic Clock v" + version, versionStyle);
         }
     }
 }
