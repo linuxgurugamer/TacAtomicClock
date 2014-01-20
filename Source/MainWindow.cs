@@ -78,6 +78,10 @@ namespace Tac
                     GUILayout.Label("KT(sidereal)", labelStyle);
                 }
             }
+            if (settings.showingKerbinMissionTime)
+            {
+                GUILayout.Label("KMET", labelStyle);
+            }
             if (settings.showingRealTime)
             {
                 GUILayout.Label("RT", labelStyle);
@@ -99,6 +103,17 @@ namespace Tac
                 if (settings.debug)
                 {
                     GUILayout.Label(GetKerbinTimeSideReal(ut), valueStyle);
+                }
+            }
+            if (settings.showingKerbinMissionTime)
+            {
+                if (FlightGlobals.ready && FlightGlobals.ActiveVessel != null)
+                {
+                    GUILayout.Label(GetKerbinElapsedTime(FlightGlobals.ActiveVessel.missionTime), valueStyle);
+                }
+                else
+                {
+                    GUILayout.Label("-", valueStyle);
                 }
             }
             if (settings.showingRealTime)
@@ -224,6 +239,50 @@ namespace Tac
             return years.ToString("00") + ":"
                 + months.ToString("00") + ":"
                 + days.ToString("00") + " "
+                + hours.ToString("00") + ":"
+                + minutes.ToString("00") + ":"
+                + seconds.ToString("00");
+        }
+
+        private string GetKerbinElapsedTime(double value)
+        {
+            double kerbinSecondsPerEarthSecond = (settings.kerbinSecondsPerMinute * settings.kerbinMinutesPerHour * settings.kerbinHoursPerDay) / settings.earthSecondsPerKerbinDay;
+
+            long seconds = (long)(value * kerbinSecondsPerEarthSecond);
+
+            long minutes = (long)(seconds / settings.kerbinSecondsPerMinute);
+            seconds -= (long)(minutes * settings.kerbinSecondsPerMinute);
+
+            long hours = (long)(minutes / settings.kerbinMinutesPerHour);
+            minutes -= (long)(hours * settings.kerbinMinutesPerHour);
+
+            long days = (long)(hours / settings.kerbinHoursPerDay);
+            hours -= (long)(days * settings.kerbinHoursPerDay);
+
+            long months = (long)(days / settings.kerbinDaysPerMonth);
+            days -= (long)(months * settings.kerbinDaysPerMonth);
+
+            long years = (long)(months / settings.kerbinMonthsPerYear);
+            months -= (long)(years * settings.kerbinMonthsPerYear);
+
+            string result = "";
+            if (years > 0)
+            {
+                result = years.ToString("00") + ":"
+                    + months.ToString("00") + ":"
+                    + days.ToString("00") + " ";
+            }
+            else if (months > 0)
+            {
+                result = months.ToString("00") + ":"
+                    + days.ToString("00") + " ";
+            }
+            else if (days > 0)
+            {
+                result = days.ToString("00") + " ";
+            }
+
+            return result
                 + hours.ToString("00") + ":"
                 + minutes.ToString("00") + ":"
                 + seconds.ToString("00");

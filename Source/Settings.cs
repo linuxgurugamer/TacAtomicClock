@@ -11,6 +11,7 @@ namespace Tac
         public bool showingEarthTime { get; set; }
         public bool showingKerbinTime { get; set; }
         public bool showingRealTime { get; set; }
+        public bool showingKerbinMissionTime { get; set; }
 
         public double initialOffsetInEarthSeconds { get; set; }
         public double earthSecondsPerKerbinDay { get; set; }
@@ -28,6 +29,7 @@ namespace Tac
             showingEarthTime = true;
             showingKerbinTime = true;
             showingRealTime = true;
+            showingKerbinMissionTime = true;
 
             initialOffsetInEarthSeconds = 0.0;
 
@@ -51,6 +53,7 @@ namespace Tac
             showingEarthTime = Utilities.GetValue(config, "showingEarthTime", showingEarthTime);
             showingKerbinTime = Utilities.GetValue(config, "showingKerbinTime", showingKerbinTime);
             showingRealTime = Utilities.GetValue(config, "showingRealTime", showingRealTime);
+            showingKerbinMissionTime = Utilities.GetValue(config, "showingKerbinMissionTime", showingKerbinMissionTime);
 
             initialOffsetInEarthSeconds = Utilities.GetValue(config, "initialOffsetInEarthSeconds", initialOffsetInEarthSeconds);
             earthSecondsPerKerbinDay = Utilities.GetValue(config, "earthSecondsPerKerbinDay", earthSecondsPerKerbinDay);
@@ -69,6 +72,7 @@ namespace Tac
             config.AddValue("showingEarthTime", showingEarthTime);
             config.AddValue("showingKerbinTime", showingKerbinTime);
             config.AddValue("showingRealTime", showingRealTime);
+            config.AddValue("showingKerbinMissionTime", showingKerbinMissionTime);
 
             config.AddValue("initialOffsetInEarthSeconds", initialOffsetInEarthSeconds);
             config.AddValue("earthSecondsPerKerbinDay", earthSecondsPerKerbinDay);

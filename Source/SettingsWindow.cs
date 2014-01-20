@@ -66,6 +66,12 @@ namespace Tac
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
+            GUILayout.Label("Show Kerbin Mission Time", labelStyle, GUILayout.ExpandWidth(true));
+            GUILayout.FlexibleSpace();
+            settings.showingKerbinMissionTime = GUILayout.Toggle(settings.showingKerbinMissionTime, "");
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
             GUILayout.Label("Show Real Time", labelStyle, GUILayout.ExpandWidth(true));
             GUILayout.FlexibleSpace();
             settings.showingRealTime = GUILayout.Toggle(settings.showingRealTime, "");

@@ -48,8 +48,9 @@ namespace Tac
             GUILayout.Space(20);
             GUILayout.Label("Definitions", sectionStyle);
             GUILayout.Label("* Universal Time -- time in Earth seconds since the game began.", labelStyle);
-            GUILayout.Label("* Earth Time -- elapsed time in Earth years:months:days hours:minutes:seconds since the game began.", labelStyle);
-            GUILayout.Label("* Kerbin Time -- elapsed time in Kerbin years:months:days hours:minutes:seconds since the game began.", labelStyle);
+            GUILayout.Label("* Earth Time -- time in Earth years:months:days hours:minutes:seconds since the game began.", labelStyle);
+            GUILayout.Label("* Kerbin Time -- time in Kerbin years:months:days hours:minutes:seconds since the game began.", labelStyle);
+            GUILayout.Label("* Kerbin Mission Time -- mission elapsed time (MET) in Kerbin years:months:days hours:minutes:seconds", labelStyle);
             GUILayout.Label("* Real Time -- current clock time from your computer.", labelStyle);
 
             GUILayout.EndVertical();
