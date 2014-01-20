@@ -34,7 +34,7 @@ namespace Tac
             initialOffsetInEarthSeconds = 0.0;
 
             // TODO Got this from the wiki, is it correct?
-            earthSecondsPerKerbinDay = 6 * 3600.0 + 50.0;
+            earthSecondsPerKerbinDay = 6 * 3600.0 + 50.813;
 
             kerbinSecondsPerMinute = 24.0;
             kerbinMinutesPerHour = 24.0;
