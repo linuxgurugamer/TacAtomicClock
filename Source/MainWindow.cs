@@ -13,6 +13,7 @@ namespace Tac
         private readonly HelpWindow helpWindow;
 
         private GUIStyle labelStyle;
+        private GUIStyle valueStyle;
 
         public MainWindow(Settings settings, SettingsWindow settingsWindow, HelpWindow helpWindow)
             : base("TAC Atomic Clock", 140, 150)
@@ -42,38 +43,71 @@ namespace Tac
                 labelStyle = new GUIStyle(GUI.skin.label);
                 labelStyle.fontStyle = FontStyle.Normal;
                 labelStyle.normal.textColor = Color.white;
+                labelStyle.margin.top = 0;
+                labelStyle.margin.bottom = 0;
+                labelStyle.padding.top = 0;
+                labelStyle.padding.bottom = 1;
                 labelStyle.wordWrap = false;
+
+                valueStyle = new GUIStyle(labelStyle);
+                valueStyle.alignment = TextAnchor.MiddleRight;
+                valueStyle.stretchWidth = true;
             }
         }
 
         protected override void DrawWindowContents(int windowID)
         {
-            GUILayout.BeginVertical();
-
             double ut = Planetarium.GetUniversalTime();
 
+            GUILayout.BeginHorizontal();
+
+            GUILayout.BeginVertical();
             if (settings.showingUniversalTime)
             {
-                GUILayout.Label("UT: " + ((long)ut).ToString("#,#"), labelStyle);
+                GUILayout.Label("UT", labelStyle);
             }
             if (settings.showingEarthTime)
             {
-                GUILayout.Label("ET: " + GetEarthTime(ut), labelStyle);
+                GUILayout.Label("ET", labelStyle);
             }
             if (settings.showingKerbinTime)
             {
-                GUILayout.Label("KT: " + GetKerbinTime(ut), labelStyle);
+                GUILayout.Label("KT", labelStyle);
                 if (settings.debug)
                 {
-                    GUILayout.Label("KT: " + GetKerbinTimeSideReel(ut), labelStyle);
+                    GUILayout.Label("KT(sidereal)", labelStyle);
                 }
             }
             if (settings.showingRealTime)
             {
-                GUILayout.Label("RT: " + DateTime.Now.ToLongTimeString(), labelStyle);
+                GUILayout.Label("RT", labelStyle);
             }
-
             GUILayout.EndVertical();
+
+            GUILayout.BeginVertical();
+            if (settings.showingUniversalTime)
+            {
+                GUILayout.Label(((long)ut).ToString("#,#"), valueStyle);
+            }
+            if (settings.showingEarthTime)
+            {
+                GUILayout.Label(GetEarthTime(ut), valueStyle);
+            }
+            if (settings.showingKerbinTime)
+            {
+                GUILayout.Label(GetKerbinTime(ut), valueStyle);
+                if (settings.debug)
+                {
+                    GUILayout.Label(GetKerbinTimeSideReal(ut), valueStyle);
+                }
+            }
+            if (settings.showingRealTime)
+            {
+                GUILayout.Label(DateTime.Now.ToLongTimeString(), valueStyle);
+            }
+            GUILayout.EndVertical();
+
+            GUILayout.EndHorizontal();
 
             if (GUI.Button(new Rect(windowPos.width - 68, 4, 20, 20), "S", closeButtonStyle))
             {
@@ -85,7 +119,7 @@ namespace Tac
             }
         }
 
-        private String GetEarthTime(double ut)
+        private string GetEarthTime(double ut)
         {
             const double SECONDS_PER_MINUTE = 60.0;
             const double MINUTES_PER_HOUR = 60.0;
@@ -123,7 +157,7 @@ namespace Tac
                 + seconds.ToString("00");
         }
 
-        private String GetKerbinTimeSideReel(double ut)
+        private string GetKerbinTimeSideReal(double ut)
         {
             const double SECONDS_PER_MINUTE = 60.0;
             const double MINUTES_PER_HOUR = 60.0;
@@ -158,10 +192,10 @@ namespace Tac
                 + days.ToString("00") + " "
                 + hours.ToString("00") + ":"
                 + minutes.ToString("00") + ":"
-                + seconds.ToString("00") + " (sidereel days)";
+                + seconds.ToString("00");
         }
 
-        private String GetKerbinTime(double ut)
+        private string GetKerbinTime(double ut)
         {
             double kerbinSecondsPerEarthSecond = (settings.kerbinSecondsPerMinute * settings.kerbinMinutesPerHour * settings.kerbinHoursPerDay) / settings.earthSecondsPerKerbinDay;
 
