@@ -77,6 +77,9 @@ namespace Tac
             settings.showingRealTime = GUILayout.Toggle(settings.showingRealTime, "");
             GUILayout.EndHorizontal();
 
+            GUILayout.Space(10);
+            settings.showMonth = GUILayout.Toggle(settings.showMonth, "Show Month");
+
             GUILayout.Space(20);
 
             if (!showAdvanced)
@@ -91,18 +94,13 @@ namespace Tac
                 if (GUILayout.Button("Simple", buttonStyle, GUILayout.ExpandWidth(true)))
                 {
                     showAdvanced = false;
+                    SetSize(10, 10);
                 }
 
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Initial offset in Earth seconds", labelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.FlexibleSpace();
                 settings.initialOffsetInEarthSeconds = Utilities.ShowTextField(settings.initialOffsetInEarthSeconds, 10, editStyle, GUILayout.MinWidth(50));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Earth seconds per Kerbin day", labelStyle, GUILayout.ExpandWidth(true));
-                GUILayout.FlexibleSpace();
-                settings.earthSecondsPerKerbinDay = Utilities.ShowTextField(settings.earthSecondsPerKerbinDay, 10, editStyle, GUILayout.MinWidth(50));
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
@@ -127,6 +125,12 @@ namespace Tac
                 GUILayout.Label("Kerbin days per month", labelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.FlexibleSpace();
                 settings.kerbinDaysPerMonth = Utilities.ShowTextField(settings.kerbinDaysPerMonth, 10, editStyle, GUILayout.MinWidth(50));
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Kerbin days per year", labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.FlexibleSpace();
+                settings.kerbinDaysPerYear = Utilities.ShowTextField(settings.kerbinDaysPerYear, 10, editStyle, GUILayout.MinWidth(50));
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
