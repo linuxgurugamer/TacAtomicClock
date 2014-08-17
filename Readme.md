@@ -14,6 +14,7 @@ Source code is available from: https://github.com/taraniselsu/TacAtomicClock
 * Displays Universal Time - the time in Earth seconds since the game began.
 * Displays Earth Time - elapsed time in Earth years:months:days hours:minutes:seconds since the game began.
 * Displays Kerbin Time - elapsed time in Kerbin years:months:days hours:minutes:seconds since the game began.
+* Displays Kerbin Mission Time - mission elapsed time (MET) in Kerbin years:months:days hours:minutes:seconds.
 * Displays Real Time - current clock time from your computer.
 
 ### Installation procedure
