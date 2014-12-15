@@ -47,7 +47,7 @@ namespace Tac
         {
             this.Log("OnStart: " + state);
             base.OnStart(state);
-            if (state != StartState.Editor)
+            if (state != StartState.Editor && state != StartState.None)
             {
                 clock = TacAtomicClockMain.Instance;
 

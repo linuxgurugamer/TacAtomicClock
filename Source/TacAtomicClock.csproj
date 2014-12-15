@@ -83,7 +83,7 @@
     <ModUrl>http://ksp-avc.cybutek.net/version.php?id=19</ModUrl>
     <DownloadUrl></DownloadUrl>
     <KspVersionMajor>0</KspVersionMajor>
-    <KspVersionMinor>25</KspVersionMinor>
+    <KspVersionMinor>90</KspVersionMinor>
     <KspVersionPatch>0</KspVersionPatch>
   </PropertyGroup>
   <Target Name="BeforeBuild">
