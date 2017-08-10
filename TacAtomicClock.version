@@ -1,0 +1,26 @@
+{
+  "NAME": "TAC Atomic Clock",
+  "URL": "https://raw.githubusercontent.com/linuxgurugamer/TacAtomicClock/master/TacAtomicClock.version",
+  "DOWNLOAD": "",
+   "VERSION": {
+    "MAJOR": 1,
+    "MINOR": 5,
+    "PATCH": 0,
+    "BUILD": 0
+  },
+  "KSP_VERSION": {
+    "MAJOR": 1,
+    "MINOR": 3,
+    "PATCH": 0
+  },
+  "KSP_VERSION_MIN": {
+    "MAJOR": 1,
+    "MINOR": 3,
+    "PATCH": 0
+  },
+  "KSP_VERSION_MAX": {
+    "MAJOR": 1,
+    "MINOR": 3,
+    "PATCH": 0
+  }
+}

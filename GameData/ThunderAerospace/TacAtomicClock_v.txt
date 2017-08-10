@@ -1,0 +1,3 @@
+﻿You have installed the TAC Atomic Clock, version  ('2cd8aeb'+'8e29f44' with modifications).
+
+See the Readme.txt and LICENSE.txt files for more information.

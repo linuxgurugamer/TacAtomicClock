@@ -13,7 +13,7 @@ namespace Tac
         private Vector2 scrollPosition;
 
         public HelpWindow()
-            : base("TAC Clock Help", 420, 360)
+            : base("TAC Clock Help", 725, 275)
         {
             scrollPosition = Vector2.zero;
         }

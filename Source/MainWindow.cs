@@ -16,7 +16,7 @@ namespace Tac
         private GUIStyle valueStyle;
 
         public MainWindow(Settings settings, SettingsWindow settingsWindow, HelpWindow helpWindow)
-            : base("TAC Atomic Clock", 140, 150)
+            : base("TAC Atomic Clock", 250, 150)
         {
             this.settings = settings;
             this.settingsWindow = settingsWindow;

@@ -32,9 +32,12 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+
+using KSP.UI.Screens;
+
 namespace Tac
 {
-    [KSPAddon(KSPAddon.Startup.Flight, false)]
+    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
     public class TacAtomicClockMain : MonoBehaviour
     {
         public static TacAtomicClockMain Instance { get; private set; }
@@ -58,7 +61,7 @@ namespace Tac
             settingsWindow = new SettingsWindow(settings);
             helpWindow = new HelpWindow();
             mainWindow = new MainWindow(settings, settingsWindow, helpWindow);
-            mainWindow.SetVisible(true);
+            mainWindow.SetVisible(false);
 
             filename = IOUtils.GetFilePathFor(this.GetType(), "TacAtomicClock.cfg");
         }
@@ -66,8 +69,59 @@ namespace Tac
         void Start()
         {
             this.Log("Start");
+
+            GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+            GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+            GameEvents.onGameSceneLoadRequested.Add(onSceneChange);
+            OnGUIAppLauncherReady();
+        }
+        void OnDestroy()
+        {
+            this.Log("OnDestroy");
+            GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
+            GameEvents.onGUIApplicationLauncherDestroyed.Remove(OnGUIAppLauncherDestroyed);
+            GameEvents.onGameSceneLoadRequested.Remove(onSceneChange);
         }
 
+        private ApplicationLauncherButton tacAtomicClockButton;
+        private const string StockToolbarIcon = "TacAtomicClock/Images/TacAtomicClock-38";
+        private void OnGUIAppLauncherReady()
+        {
+            //Log.Info("OnGUIAppLauncherReady");
+            // Setup PW Stock Toolbar button
+            bool hidden = false;
+            if (ApplicationLauncher.Ready && !ApplicationLauncher.Instance.Contains(tacAtomicClockButton, out hidden))
+            {
+                tacAtomicClockButton = ApplicationLauncher.Instance.AddModApplication(
+                    ToggleToolbarButton,
+                    ToggleToolbarButton,
+                    null, null, null, null,
+                    ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPACECENTER | ApplicationLauncher.AppScenes.TRACKSTATION,
+
+                    (Texture)GameDatabase.Instance.GetTexture(StockToolbarIcon, false));
+              
+            }
+        }
+        internal void onSceneChange(GameScenes scene)
+        {
+            OnGUIAppLauncherDestroyed();
+        }
+        private void OnGUIAppLauncherDestroyed()
+        {
+            //Log.Info("OnGUIAppLauncherDestroyed");
+            if (tacAtomicClockButton != null)
+            {
+                ApplicationLauncher.Instance.RemoveModApplication(tacAtomicClockButton);
+                tacAtomicClockButton = null;
+            }
+        }
+
+        void ToggleToolbarButton()
+        {
+            //settings.Enabled = !settings.Enabled;
+            mainWindow.ToggleVisible();
+        }
+#if false
         void FixedUpdate()
         {
             if (FlightGlobals.ready && mainWindow.IsVisible())
@@ -82,6 +136,7 @@ namespace Tac
                 }
             }
         }
+#endif
 
         public void Load()
         {
@@ -149,5 +204,11 @@ namespace Tac
         {
             return mainWindow.IsVisible();
         }
-    }
+        private void OnGUI()
+         {
+            mainWindow.OnGUI();
+            settingsWindow.OnGUI();
+            helpWindow.OnGUI();
+         }
+}
 }

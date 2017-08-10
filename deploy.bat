@@ -1,8 +1,14 @@
-@if "%KSP_PLAY%"=="" (
-	echo KSP_PLAY has not been set!
-	pause
-	exit 1
-)
 
-xcopy /s /f /y GameData %KSP_PLAY%\GameData\
-pause
+@echo off
+
+set H=R:\KSP_1.3.0_dev
+set GAMEDIR=TacAtomicClock
+
+echo %H%
+
+mkdir "GameData\%GAMEDIR%\Plugins"
+copy /Y "%1%2" "GameData\%GAMEDIR%\Plugins"
+rem copy /Y %GAMEDIR%.version GameData\%GAMEDIR%
+
+mkdir "%H%\GameData\%GAMEDIR%"
+xcopy /y /s GameData\%GAMEDIR% "%H%\GameData\%GAMEDIR%"
