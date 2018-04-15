@@ -1,17 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TacAtomicClock", "TacAtomicClock.csproj", "{0BC2FDB0-6BC2-4B9B-B9AA-A29CFAC30EA3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TacAtomicClock", "Source\TacAtomicClock.csproj", "{0BC2FDB0-6BC2-4B9B-B9AA-A29CFAC30EA3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{049CB895-00A6-49B8-9E73-1C174D44A9D1}"
 	ProjectSection(SolutionItems) = preProject
-		..\buildRelease.bat = ..\buildRelease.bat
-		..\ChangeLog.bat = ..\ChangeLog.bat
-		..\deploy.bat = ..\deploy.bat
-		..\LICENSE.txt = ..\LICENSE.txt
-		..\TacAtomicClock.version = ..\TacAtomicClock.version
+		buildRelease.bat = buildRelease.bat
+		ChangeLog.bat = ChangeLog.bat
+		deploy.bat = deploy.bat
+		jenkins.txt = jenkins.txt
+		LICENSE.txt = LICENSE.txt
+		Readme.md = Readme.md
+		TacAtomicClock.version = TacAtomicClock.version
 	EndProjectSection
 EndProject
 Global
@@ -27,5 +29,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {781203A1-1CCD-4740-BAD1-4B52A1B852DF}
 	EndGlobalSection
 EndGlobal

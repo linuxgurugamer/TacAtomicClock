@@ -32,8 +32,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-
 using KSP.UI.Screens;
+
+using ToolbarControl_NS;
 
 namespace Tac
 {
@@ -70,26 +71,38 @@ namespace Tac
         {
             this.Log("Start");
 
+#if false
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
             GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+#endif
             GameEvents.onGameSceneLoadRequested.Add(onSceneChange);
             OnGUIAppLauncherReady();
         }
         void OnDestroy()
         {
             this.Log("OnDestroy");
+            OnGUIAppLauncherDestroyed();
+#if false
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
             GameEvents.onGUIApplicationLauncherDestroyed.Remove(OnGUIAppLauncherDestroyed);
+#endif
             GameEvents.onGameSceneLoadRequested.Remove(onSceneChange);
         }
 
-        private ApplicationLauncherButton tacAtomicClockButton;
+        //private ApplicationLauncherButton tacAtomicClockButton;
+        ToolbarControl toolbarControl;
+
         private const string StockToolbarIcon = "TacAtomicClock/Images/TacAtomicClock-38";
+        private const string BlizzyToolbarIcon = "TacAtomicClock/Images/TacAtomicClock-24";
+        internal const string MODID = "atomicClock_NS";
+        internal const string MODNAME = "TAC Atomic Clock";
+
         private void OnGUIAppLauncherReady()
         {
             //Log.Info("OnGUIAppLauncherReady");
             // Setup PW Stock Toolbar button
             bool hidden = false;
+#if false
             if (ApplicationLauncher.Ready && !ApplicationLauncher.Instance.Contains(tacAtomicClockButton, out hidden))
             {
                 tacAtomicClockButton = ApplicationLauncher.Instance.AddModApplication(
@@ -101,6 +114,17 @@ namespace Tac
                     (Texture)GameDatabase.Instance.GetTexture(StockToolbarIcon, false));
               
             }
+#endif
+            toolbarControl = gameObject.AddComponent<ToolbarControl>();
+            toolbarControl.AddToAllToolbars(ToggleToolbarButton, ToggleToolbarButton,
+                ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPACECENTER | ApplicationLauncher.AppScenes.TRACKSTATION,
+                MODID,
+                "atomicClockButton",
+                StockToolbarIcon,
+                BlizzyToolbarIcon,
+                MODNAME
+            );
+
         }
         internal void onSceneChange(GameScenes scene)
         {
@@ -109,11 +133,15 @@ namespace Tac
         private void OnGUIAppLauncherDestroyed()
         {
             //Log.Info("OnGUIAppLauncherDestroyed");
+#if false
             if (tacAtomicClockButton != null)
             {
                 ApplicationLauncher.Instance.RemoveModApplication(tacAtomicClockButton);
                 tacAtomicClockButton = null;
             }
+#endif
+            toolbarControl.OnDestroy();
+            Destroy(toolbarControl);
         }
 
         void ToggleToolbarButton()
