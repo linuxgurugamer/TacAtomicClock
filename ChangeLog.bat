@@ -1,3 +1,6 @@
+1.5.2.1
+	Version bump for 1.5 rebuild
+
 1.5.2
 	Updated for 1.4.1+
 	Added support for the ToolbarController
