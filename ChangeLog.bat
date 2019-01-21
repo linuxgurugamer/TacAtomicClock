@@ -1,3 +1,6 @@
+1.5.3
+	Added missing bulkheadProfiles to part
+
 1.5.2.1
 	Version bump for 1.5 rebuild
 
