@@ -1,3 +1,10 @@
+ChangeLog
+
+1.6.0
+	Added InstallChecker
+	Updated AssemblyVersion
+	Updated for KSP 1.8
+
 1.5.3
 	Added missing bulkheadProfiles to part
 
